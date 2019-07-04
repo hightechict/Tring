@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "QuickConnect": {
+      "commandName": "Project",
+      "commandLineArgs": "www.google.nl https --watch"
+    }
+  }
+}

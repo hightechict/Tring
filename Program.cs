@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
-
+using Microsoft.Extensions.CommandLineUtils;
 
 namespace QuickConnect
 {
@@ -9,45 +7,46 @@ namespace QuickConnect
     {
         static void Main(string[] args)
         {
-			if (args.Length<2) return;
-			var host = args[0];
-			var port = (short)int.Parse(args[1]);
-			Console.WriteLine($"Connecting to {host}:{port}");
-            var response = TryConnect(host, port);
-            var startColor = Console.ForegroundColor;
-            if (string.IsNullOrEmpty(response))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("OK");
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(response);
-            }
-            Console.ForegroundColor = startColor;
-        }
-		
-		static string TryConnect(string host, short port)
-		{
-		    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            if (args.Length < 1) return;
 
-            // Connect using a timeout (5 seconds)
-
-            IAsyncResult result = socket.BeginConnect( host, port, null, null );
-
-            result.AsyncWaitHandle.WaitOne(1000, true);
-
-            if (socket.Connected)
+            var app = new CommandLineApplication
             {
-	            socket.EndConnect(result);
-	            return "";
-            }
-            else
+                Name = "quick-connect"
+            };
+            app.HelpOption("-?|-h|--help");
+            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.",   multipleValues: true);
+            var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
+
+            app.OnExecute(() =>
             {
-                socket.Close();
-                return "FAIL";
-            }
-        }			
+                ConnectionTester connectionTester;
+                switch (arguments.Values.Count)
+                {
+                    case 0:
+                        throw new ArgumentException("No arguments provided: please provide atleast a host");
+                    case 1:
+                        connectionTester = new ConnectionTester(arguments.Values[0]);
+                        break;
+                    case 2:
+                        connectionTester = new ConnectionTester(arguments.Values[0],arguments.Values[1]);
+                        break;
+                    default:
+                        throw new ArgumentException("To many arguments provided: please provide only a host and a port");
+                }
+   
+                connectionTester.TryConnectAndPrintResult();
+                if(optionWatch.Value() == "on")
+                {     
+                    while(true)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                        connectionTester.TryConnectAndPrintResult();
+                    }
+                }
+                return 0;
+            });
+
+            var response = app.Execute(args);
+        }		
     }
 }
