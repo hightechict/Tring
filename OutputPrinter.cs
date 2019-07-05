@@ -2,21 +2,60 @@
 
 namespace QuickConnect
 {
-    public class OutputPrinter
+    internal class OutputPrinter
     {
         private static ConsoleColor consoleColor = Console.ForegroundColor;
-        public static void PrintConnectionSucces(string host,short port)
+
+
+        public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, short port, string currentTime, string startTime = "")
+        {
+            PrintTime(currentTime, startTime);
+            PrintHost(host, port);
+            PrintStatus(status);
+        }
+        private static void PrintStatus(ConnectionTester.ConnectionStatus status)
+        {
+            switch(status)
+            {
+                case ConnectionTester.ConnectionStatus.Succes:
+                    PrintConnectionSucces();
+                    break;
+                case ConnectionTester.ConnectionStatus.DnsFailed:
+                    PrintConnectionFailer("Dns lookup failed");
+                    break;
+                case ConnectionTester.ConnectionStatus.DnsTimeOut:
+                    PrintConnectionFailer("Dns lookup timed out");
+                    break;
+                default:
+                    PrintConnectionFailer(status.ToString());
+                    break;
+            }
+        }
+        private static void PrintTime(string currentTime,string startTime ="")
+        {
+            if (string.IsNullOrEmpty(startTime))
+            {
+                Console.Write($"{currentTime} ");
+            }
+            else
+            {
+                Console.Write($"{startTime} - {currentTime} ");
+            }
+        }
+        private static void PrintHost(string host, short port)
         {
             Console.Write($"Connecting to {host}:{port}");
+        }
+        private static void PrintConnectionSucces()
+        {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(" OK\n");
+            Console.Write(" OK\r");
             Console.ForegroundColor = consoleColor;
         }
-        public static void PrintConnectionFailer(string host, short port,string reason)
+        private static void PrintConnectionFailer(string reason)
         {
-            Console.Write($"Connecting to {host}:{port}");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write($" NOK : {reason}\n");
+            Console.Write($" NOK : {reason}\r");
             Console.ForegroundColor = consoleColor;
         }
     }

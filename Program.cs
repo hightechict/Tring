@@ -5,6 +5,7 @@ namespace QuickConnect
 {
     class Program
     {
+        private const string timeFormat = "HH:mm:ss";
         static void Main(string[] args)
         {
             if (args.Length < 1) return;
@@ -34,14 +35,36 @@ namespace QuickConnect
                         throw new ArgumentException("To many arguments provided: please provide only a host and a port");
                 }
    
-                connectionTester.TryConnectAndPrintResult();
+                
                 if(optionWatch.Value() == "on")
-                {     
-                    while(true)
+                {
+                    var startTime = DateTime.Now.ToString(timeFormat);
+                    var status = connectionTester.TryConnect();
+                    OutputPrinter.PrintLogEntry(
+                                     status,
+                                     connectionTester.Host, connectionTester.Port,
+                                     DateTime.Now.ToString(timeFormat), startTime);
+                    while (true)
                     {
                         System.Threading.Thread.Sleep(1000);
-                        connectionTester.TryConnectAndPrintResult();
+                        var newStatus = connectionTester.TryConnect();
+                        if (status != newStatus)
+                        {
+                            status = newStatus;
+                            Console.CursorTop++;
+                        }
+                        OutputPrinter.PrintLogEntry(
+                                         status,
+                                         connectionTester.Host, connectionTester.Port,
+                                         DateTime.Now.ToString(timeFormat), startTime);
                     }
+                }
+                else
+                {
+                    OutputPrinter.PrintLogEntry(
+                                     connectionTester.TryConnect(),
+                                     connectionTester.Host, connectionTester.Port,
+                                     DateTime.Now.ToString(timeFormat));
                 }
                 return 0;
             });

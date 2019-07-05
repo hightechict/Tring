@@ -1,106 +1,137 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
 namespace QuickConnect
 {
-    class ConnectionTester
+    internal class ConnectionTester
     {
         private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(?<port>\:\d+)*$", RegexOptions.Compiled);
         private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+)(\:(?<port>\d+))?(\/[a-zA-Z0-9]+)*", RegexOptions.Compiled);
+        private readonly bool HostIsURL;
+        private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
+
+        public enum ConnectionStatus{Succes, TimeOut, DnsFailed, DnsTimeOut,Refused};
         public string Host { get; }
         public short Port { get; }
         public ConnectionTester(string UrlOrIp, string port = "")
         {
-            var urlMatch = checkIfUrl.Match(UrlOrIp);
-            var ipMatch = checkIfIp.Match(UrlOrIp);
-            if (ipMatch.Success)
+            if (CheckIfIP(UrlOrIp, out var hostFound, out var portFound))
             {
-                Host = ipMatch.Groups["ip"].Value;
-                if (!string.IsNullOrEmpty(ipMatch.Groups["port"].Value))
-                {
-                    port = ipMatch.Groups["port"].Value;
-                }
+                Port = portFound;
+                Host = hostFound;
+                HostIsURL = false;
             }
-            else if (urlMatch.Success)
+            else if (CheckIfURL(UrlOrIp, out hostFound, out portFound))
             {
-                Host = urlMatch.Groups["host"].Value;
-                if(!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
-                {
-                    port = urlMatch.Groups["port"].Value;
-                }
-                else if(string.IsNullOrEmpty(port) && !string.IsNullOrEmpty(urlMatch.Groups["protocol"].Value))
-                {
-                    Port = DeteminePortByProtocol(urlMatch.Groups["protocol"].Value);
-                }
+                Port = portFound;
+                Host = hostFound;
+                HostIsURL = true;
             }
             else
             {
-               throw new ArgumentException($"Input: {UrlOrIp} is nether a ip nor url.");
+                throw new ArgumentException($"Input: {UrlOrIp} is nether a ip nor a url.");
             }
 
             if (!string.IsNullOrEmpty(port))
             {
-                if (!short.TryParse(port, out var parsedPort))
-                {
-                    Port = DeteminePortByProtocol(port);
-                    if(Port == 0) throw new ArgumentException($"The number you provided is not valid: {port}");
-                }
-                Port = parsedPort;
-            }   
+                Port = PortLogic.StringToPort(port);
+            }
+            if (Port == PortLogic.UnsetPort) throw new ArgumentException($"The input you provided for the port is not valid, your input: {port}");
         }
-        public void TryConnectAndPrintResult()
+        public ConnectionStatus TryConnect()
         {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            IAsyncResult result = socket.BeginConnect(Host, Port, null, null);
-
-            result.AsyncWaitHandle.WaitOne(1000, true);
-
-            if (socket.Connected)
+            IAsyncResult result;
+            if (HostIsURL)
             {
-                socket.EndConnect(result);
-                OutputPrinter.PrintConnectionSucces(Host,Port);
+                var lookupResult = DnsLookup(Host, waitTime,out var host);
+                if (host == null) return lookupResult;
+                result = socket.BeginConnect(host.AddressList[0], Port, null, null);
             }
             else
             {
-                OutputPrinter.PrintConnectionFailer(Host, Port,"Not yet implemented :/");
-                socket.Close();
+                result = socket.BeginConnect(Host, Port, null, null);
             }
-        }
-
-        private short DeteminePortByProtocol(string protocol)
-        {
-            switch(protocol.ToLower())
+            bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
+            if (socket.Connected)
             {
-                case "ftp":
-                    return 21;
-                case "ssh":
-                    return 22;
-                case "smtp":
-                    return 25;
-                case "dns":
-                    return 53;
-                case "http":
-                    return 80;
-                case "pop":
-                    return 110;
-                case "imap":
-                    return 143;
-                case "snmp":
-                    return 161;
-                case "bgp":
-                    return 179;
-                case "ldap":
-                    return 389;
-                case "https":
-                    return 443;
-                case "ldaps":
-                    return 636;
-                default:
-                    return 0;
+                socket.EndConnect(result);
+                return ConnectionStatus.Succes;
+            }
+            else
+            {
+                socket.Close();
+                if (connectionSuccess)
+                {
+                    return ConnectionStatus.Refused;
+                }
+                else
+                {
+                    return ConnectionStatus.TimeOut;
+                }       
             }
         }
+        private static ConnectionStatus DnsLookup(string host,TimeSpan timeToTry,out IPHostEntry result)
+        {
+            result = null;
+            IAsyncResult lookupResult = Dns.BeginGetHostEntry(host, null, null);
+            bool DnsLookupSucces = lookupResult.AsyncWaitHandle.WaitOne(timeToTry);
+            if (DnsLookupSucces)
+            {
+                try
+                {
+                    result = Dns.EndGetHostEntry(lookupResult);
+                    return ConnectionStatus.Succes;
+                }
+                catch(Exception)
+                {
+                    return ConnectionStatus.DnsFailed;
+                }
+                
+            }
+            else
+            {
+                return ConnectionStatus.DnsTimeOut;
+            }
 
+        }
+        private static bool CheckIfIP(string toCheck, out string host, out short port)
+        {
+            host = "";
+            port = PortLogic.UnsetPort;
+            var ipMatch = checkIfIp.Match(toCheck);
+            if (ipMatch.Success)
+            {
+                host = ipMatch.Groups["ip"].Value;
+                if (!string.IsNullOrEmpty(ipMatch.Groups["port"].Value))
+                {
+                    port = PortLogic.StringToPort(ipMatch.Groups["port"].Value);
+                }
+                return true;
+            }
+            return false;
+        }
+        private static bool CheckIfURL(string toCheck, out string host, out short port)
+        {
+            host = "";
+            port = PortLogic.UnsetPort;
+            var urlMatch = checkIfUrl.Match(toCheck);
+            if (urlMatch.Success)
+            {
+                host = urlMatch.Groups["host"].Value;
+                if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
+                {
+                    port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
+                }
+                else if (port == PortLogic.UnsetPort && !string.IsNullOrEmpty(urlMatch.Groups["protocol"].Value))
+                {
+                    port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["protocol"].Value);
+                }
+                return true;
+            }
+            return false;
+        }
     }
 }
