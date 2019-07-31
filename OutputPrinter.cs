@@ -4,9 +4,6 @@ namespace QuickConnect
 {
     internal class OutputPrinter
     {
-        private static ConsoleColor consoleColor = Console.ForegroundColor;
-
-
         public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, short port, string currentTime, string startTime = "")
         {
             PrintTime(currentTime, startTime);
@@ -33,6 +30,7 @@ namespace QuickConnect
         }
         private static void PrintTime(string currentTime,string startTime ="")
         {
+            Console.ResetColor();
             if (string.IsNullOrEmpty(startTime))
             {
                 Console.Write($"{currentTime} ");
@@ -44,19 +42,20 @@ namespace QuickConnect
         }
         private static void PrintHost(string host, short port)
         {
+            Console.ResetColor();
             Console.Write($"Connecting to {host}:{port}");
         }
         private static void PrintConnectionSucces()
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(" OK\r");
-            Console.ForegroundColor = consoleColor;
+            Console.ResetColor();
         }
         private static void PrintConnectionFailer(string reason)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write($" NOK : {reason}\r");
-            Console.ForegroundColor = consoleColor;
+            Console.ResetColor();
         }
     }
 }

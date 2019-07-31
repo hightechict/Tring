@@ -8,7 +8,7 @@ namespace QuickConnect
     internal class ConnectionTester
     {
         private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(?<port>\:\d+)*$", RegexOptions.Compiled);
-        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+)(\:(?<port>\d+))?(\/[a-zA-Z0-9]+)*", RegexOptions.Compiled);
+        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[a-zA-Z0-9_.\-~]+(\.[a-zA-Z0-9_.\-~]+)+)(\:(?<port>\d+))?(\/[a-zA-Z0-9]+)*", RegexOptions.Compiled);
         private readonly bool HostIsURL;
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
@@ -89,13 +89,11 @@ namespace QuickConnect
                 {
                     return ConnectionStatus.DnsFailed;
                 }
-                
             }
             else
             {
                 return ConnectionStatus.DnsTimeOut;
             }
-
         }
         private static bool CheckIfIP(string toCheck, out string host, out short port)
         {
