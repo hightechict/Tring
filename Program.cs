@@ -34,16 +34,16 @@ namespace QuickConnect
                     default:
                         throw new ArgumentException("To many arguments provided: please provide only a host and a port");
                 }
-   
-                
-                if(optionWatch.Value() == "on")
+
+                OutputPrinter.PrintLogEntry(
+                 connectionTester.TryConnect(),
+                 connectionTester.Host, connectionTester.Port,
+                 DateTime.Now.ToString(timeFormat));
+
+                if (optionWatch.Value() == "on")
                 {
                     var startTime = DateTime.Now.ToString(timeFormat);
                     var status = connectionTester.TryConnect();
-                    OutputPrinter.PrintLogEntry(
-                                     status,
-                                     connectionTester.Host, connectionTester.Port,
-                                     DateTime.Now.ToString(timeFormat), startTime);
                     while (true)
                     {
                         System.Threading.Thread.Sleep(1000);
@@ -53,22 +53,15 @@ namespace QuickConnect
                             status = newStatus;
                             Console.CursorTop++;
                         }
+                        OutputPrinter.ResetPrintLine();
                         OutputPrinter.PrintLogEntry(
                                          status,
                                          connectionTester.Host, connectionTester.Port,
                                          DateTime.Now.ToString(timeFormat), startTime);
                     }
                 }
-                else
-                {
-                    OutputPrinter.PrintLogEntry(
-                                     connectionTester.TryConnect(),
-                                     connectionTester.Host, connectionTester.Port,
-                                     DateTime.Now.ToString(timeFormat));
-                }
                 return 0;
             });
-
             var response = app.Execute(args);
         }		
     }

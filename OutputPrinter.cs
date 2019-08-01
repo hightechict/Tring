@@ -10,6 +10,10 @@ namespace QuickConnect
             PrintHost(host, port);
             PrintStatus(status);
         }
+        public static void ResetPrintLine()
+        {
+            Console.SetCursorPosition(0,Console.CursorTop);
+        }
         private static void PrintStatus(ConnectionTester.ConnectionStatus status)
         {
             switch(status)
@@ -48,13 +52,13 @@ namespace QuickConnect
         private static void PrintConnectionSucces()
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(" OK\r");
+            Console.Write(" OK");
             Console.ResetColor();
         }
         private static void PrintConnectionFailer(string reason)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write($" NOK : {reason}\r");
+            Console.Write($" NOK : {reason}");
             Console.ResetColor();
         }
     }
