@@ -4,7 +4,7 @@ namespace QuickConnect
 {
     internal class OutputPrinter
     {
-        public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, short port, string currentTime, string startTime = "")
+        public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, ushort port, string currentTime, string startTime = "")
         {
             PrintTime(currentTime, startTime);
             PrintHost(host, port);
@@ -44,7 +44,7 @@ namespace QuickConnect
                 Console.Write($"{startTime} - {currentTime} ");
             }
         }
-        private static void PrintHost(string host, short port)
+        private static void PrintHost(string host, ushort port)
         {
             Console.ResetColor();
             Console.Write($"Connecting to {host}:{port}");

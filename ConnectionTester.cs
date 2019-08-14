@@ -14,7 +14,7 @@ namespace QuickConnect
 
         public enum ConnectionStatus{Succes, TimeOut, DnsFailed, DnsTimeOut,Refused};
         public string Host { get; }
-        public short Port { get; }
+        public ushort Port { get; }
         public ConnectionTester(string UrlOrIp, string port = "")
         {
             if (CheckIfIP(UrlOrIp, out var hostFound, out var portFound))
@@ -95,7 +95,7 @@ namespace QuickConnect
                 return ConnectionStatus.DnsTimeOut;
             }
         }
-        private static bool CheckIfIP(string toCheck, out string host, out short port)
+        private static bool CheckIfIP(string toCheck, out string host, out ushort port)
         {
             host = "";
             port = PortLogic.UnsetPort;
@@ -115,7 +115,7 @@ namespace QuickConnect
             }
             return false;
         }
-        private static bool CheckIfURL(string toCheck, out string host, out short port)
+        private static bool CheckIfURL(string toCheck, out string host, out ushort port)
         {
             host = "";
             port = PortLogic.UnsetPort;

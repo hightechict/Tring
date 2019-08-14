@@ -2,17 +2,17 @@
 {
     internal class PortLogic
     {
-        public const short UnsetPort = 0;
-        public static short StringToPort(string toConvert)
+        public const ushort UnsetPort = 0;
+        public static ushort StringToPort(string toConvert)
         {
-            short toReturn;
-            if (!short.TryParse(toConvert, out toReturn))
+            ushort toReturn;
+            if (!ushort.TryParse(toConvert, out toReturn))
             {
                 toReturn = DeteminePortByProtocol(toConvert);
             }
             return toReturn;
         }
-        public static short DeteminePortByProtocol(string protocol)
+        public static ushort DeteminePortByProtocol(string protocol)
         {
             switch (protocol.ToLower())
             {
