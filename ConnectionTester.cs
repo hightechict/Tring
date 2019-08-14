@@ -7,8 +7,8 @@ namespace QuickConnect
 {
     internal class ConnectionTester
     {
-        private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(?<port>\:\d+)*$", RegexOptions.Compiled);
-        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[a-zA-Z0-9_.\-~]+(\.[a-zA-Z0-9_.\-~]+)+)(\:(?<port>\d+))?(\/[a-zA-Z0-9]+)*", RegexOptions.Compiled);
+        private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(\:(?<port>.+))?$", RegexOptions.Compiled);
+        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)+)(\:(?<port>.+))?(\/.+)*", RegexOptions.Compiled);
         private readonly bool HostIsURL;
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
@@ -106,6 +106,10 @@ namespace QuickConnect
                 if (!string.IsNullOrEmpty(ipMatch.Groups["port"].Value))
                 {
                     port = PortLogic.StringToPort(ipMatch.Groups["port"].Value);
+                    if(port == PortLogic.UnsetPort)
+                    {
+                        port = PortLogic.DeteminePortByProtocol(ipMatch.Groups["port"].Value);
+                    }
                 }
                 return true;
             }
@@ -122,6 +126,10 @@ namespace QuickConnect
                 if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
                 {
                     port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
+                    if (port == PortLogic.UnsetPort)
+                    {
+                        port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["port"].Value);
+                    }
                 }
                 else if (port == PortLogic.UnsetPort && !string.IsNullOrEmpty(urlMatch.Groups["protocol"].Value))
                 {
