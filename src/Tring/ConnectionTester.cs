@@ -12,7 +12,7 @@ namespace Tring
         private readonly bool HostIsURL;
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
-        public enum ConnectionStatus{Succes, TimeOut, DnsFailed, DnsTimeOut,Refused};
+        public enum ConnectionStatus { Succes, TimeOut, DnsFailed, DnsTimeOut, Refused };
         public string Host { get; }
         public ushort Port { get; }
 
@@ -42,14 +42,15 @@ namespace Tring
             if (Port == PortLogic.UnsetPort) throw new ArgumentException($"The input you provided for the port is not valid, your input: {port}");
         }
 
-        public ConnectionStatus TryConnect()
+        public ConnectionStatus TryConnect(out string connectionPath)
         {
             string ip;
+            connectionPath = "";
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
             if (HostIsURL)
             {
-                var lookupResult = DnsLookup(Host, waitTime,out var host);
+                var lookupResult = DnsLookup(Host, waitTime, out var host);
                 if (host == null) return lookupResult;
                 ip = host.AddressList[0].ToString();
                 result = socket.BeginConnect(ip, Port, null, null);
@@ -67,6 +68,7 @@ namespace Tring
             }
             else
             {
+                connectionPath = GetLocalPath(ip, socket);
                 socket.Close();
                 if (connectionSuccess)
                 {
@@ -75,11 +77,11 @@ namespace Tring
                 else
                 {
                     return ConnectionStatus.TimeOut;
-                }       
+                }
             }
         }
 
-        private static ConnectionStatus DnsLookup(string host,TimeSpan timeToTry,out IPHostEntry result)
+        private static ConnectionStatus DnsLookup(string host, TimeSpan timeToTry, out IPHostEntry result)
         {
             result = null;
             IAsyncResult lookupResult = Dns.BeginGetHostEntry(host, null, null);
@@ -91,7 +93,7 @@ namespace Tring
                     result = Dns.EndGetHostEntry(lookupResult);
                     return ConnectionStatus.Succes;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     return ConnectionStatus.DnsFailed;
                 }
@@ -113,7 +115,7 @@ namespace Tring
                 if (!string.IsNullOrEmpty(ipMatch.Groups["port"].Value))
                 {
                     port = PortLogic.StringToPort(ipMatch.Groups["port"].Value);
-                    if(port == PortLogic.UnsetPort)
+                    if (port == PortLogic.UnsetPort)
                     {
                         port = PortLogic.DeteminePortByProtocol(ipMatch.Groups["port"].Value);
                     }
@@ -146,6 +148,40 @@ namespace Tring
                 return true;
             }
             return false;
+        }
+
+        private static string GetLocalPath(string ip, Socket socket)
+        {
+            IPAddress remoteIp = IPAddress.Parse(ip);
+            IPEndPoint remoteEndPoint = new IPEndPoint(remoteIp, 0);
+            IPEndPoint localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
+            return localEndPoint.Address.ToString();
+        }
+
+        private static IPEndPoint QueryRoutingInterface(
+          Socket socket,
+          IPEndPoint remoteEndPoint)
+        {
+            SocketAddress address = remoteEndPoint.Serialize();
+
+            byte[] remoteAddrBytes = new byte[address.Size];
+            for (int i = 0; i < address.Size; i++)
+            {
+                remoteAddrBytes[i] = address[i];
+            }
+
+            byte[] outBytes = new byte[remoteAddrBytes.Length];
+            socket.IOControl(
+                        IOControlCode.RoutingInterfaceQuery,
+                        remoteAddrBytes,
+                        outBytes);
+            for (int i = 0; i < address.Size; i++)
+            {
+                address[i] = outBytes[i];
+            }
+
+            EndPoint ep = remoteEndPoint.Create(address);
+            return (IPEndPoint)ep;
         }
     }
 }

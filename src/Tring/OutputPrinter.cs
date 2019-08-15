@@ -4,15 +4,25 @@ namespace Tring
 {
     internal class OutputPrinter
     {
-        public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, ushort port, string currentTime, string startTime = "")
+        public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, ushort port, string currentTime, string startTime = "", string localTrace = "")
         {
             PrintTime(currentTime, startTime);
             PrintHost(host, port);
             PrintStatus(status);
+            PrintEndPoint(localTrace);
         }
         public static void ResetPrintLine()
         {
             Console.SetCursorPosition(0,Console.CursorTop);
+        }
+        public static void HideCursor()
+        {
+            Console.CursorVisible = false;
+        }
+        public static void CleanUp()
+        {
+            Console.CursorVisible = true;
+            Console.ResetColor();
         }
         private static void PrintStatus(ConnectionTester.ConnectionStatus status)
         {
@@ -48,6 +58,12 @@ namespace Tring
         {
             Console.ResetColor();
             Console.Write($"Connecting to {host}:{port}");
+        }
+        private static void PrintEndPoint(string endPointIp)
+        {
+            Console.ResetColor();
+            if (!string.IsNullOrEmpty(endPointIp))
+                Console.Write($" (local ip endpoint: {endPointIp})");
         }
         private static void PrintConnectionSucces()
         {
