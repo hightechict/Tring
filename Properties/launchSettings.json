@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "QuickConnect": {
+    "Tring": {
       "commandName": "Project",
       "commandLineArgs": "google.nl:https --watch"
     }
