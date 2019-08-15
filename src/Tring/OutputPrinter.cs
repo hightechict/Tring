@@ -63,7 +63,7 @@ namespace Tring
         {
             Console.ResetColor();
             if (!string.IsNullOrEmpty(endPointIp))
-                Console.Write($" (local ip endpoint: {endPointIp})");
+                Console.Write($" (local interface used: {endPointIp})");
         }
         private static void PrintConnectionSucces()
         {
