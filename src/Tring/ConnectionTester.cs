@@ -12,14 +12,14 @@ namespace Tring
         private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>.+))?(\/.+)*", RegexOptions.Compiled);
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
-        public enum ConnectionStatus { Succes, TimeOut, Refused, Untried};
+        public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
 
         public ConnectionRequest request;
 
         public ConnectionTester(string UrlOrIp, string port = "")
         {
             request = CheckIfIP(UrlOrIp);
-            if(request == null)
+            if (request == null)
                 request = CheckIfURL(UrlOrIp);
             if (request == null)
                 throw new ArgumentException($"Input: {UrlOrIp} is nether a ip nor a url.");
@@ -36,13 +36,13 @@ namespace Tring
             var toReturn = new ConnectionResult();
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
+            toReturn.Request = request;
             if (string.IsNullOrEmpty(request.Ip))
             {
                 toReturn.DnsResult = DnsLookup(request.Url);
                 if (toReturn.DnsResult != ConnectionStatus.Succes)
                     return toReturn;
             }
-            toReturn.Request = request;
             result = socket.BeginConnect(request.Ip, request.Port, null, null);
             bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
             toReturn.LocalInterface = GetLocalPath(request.Ip, socket);
@@ -155,7 +155,7 @@ namespace Tring
             {
                 return null;
             }
-            return new ConnectionRequest("", port,url);
+            return new ConnectionRequest("", port, url);
         }
 
         private static string GetLocalPath(string ip, Socket socket)

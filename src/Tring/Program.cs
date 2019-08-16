@@ -40,9 +40,9 @@ namespace Tring
                 OutputPrinter.HideCursor();
                 OutputPrinter.PrintTable();
                 while (true)
-                { 
+                {
                     OutputPrinter.ResetPrintLine();
-                    OutputPrinter.PrintLogEntry(startTime,newResult);
+                    OutputPrinter.PrintLogEntry(startTime, newResult);
                     if (optionWatch.Value() != "on")
                         break;
 
@@ -57,8 +57,8 @@ namespace Tring
                     watch.Stop();
                     if (watch.ElapsedMilliseconds < 1000)
                     {
-                        System.Threading.Thread.Sleep(1000- (int)watch.ElapsedMilliseconds);
-                    } 
+                        System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
+                    }
                 }
                 OutputPrinter.CleanUp();
                 return 0;

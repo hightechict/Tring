@@ -40,6 +40,8 @@
                     return 443;
                 case "ldaps":
                     return 636;
+                case "rdp":
+                    return 3389;
                 default:
                     return 0;
             }

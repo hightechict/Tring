@@ -18,12 +18,12 @@ namespace Tring
         public static void PrintTable()
         {
             Console.WriteLine("| Time              | IP              | Port  | Result  | Ping | LocalInterface  |");
-         //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | ✓    | 111.111.111.111 |
+            //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | ✓    | 111.111.111.111 |
         }
 
         public static void ResetPrintLine()
         {
-            Console.SetCursorPosition(0,Console.CursorTop);
+            Console.SetCursorPosition(0, Console.CursorTop);
         }
 
         public static void HideCursor()
@@ -92,8 +92,8 @@ namespace Tring
 
         private static void PrintRequest(ConnectionResult request)
         {
-            var ipOrError ="";
-            switch(request.DnsResult)
+            var ipOrError = "";
+            switch (request.DnsResult)
             {
                 case ConnectionTester.ConnectionStatus.Succes:
                 case ConnectionTester.ConnectionStatus.Untried:
