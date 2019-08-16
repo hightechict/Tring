@@ -17,8 +17,8 @@ namespace Tring
 
         public static void PrintTable()
         {
-            Console.WriteLine("| Time              | IP              | Port  | Result  | Ping | LocalInterface  |");
-            //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | ✓    | 111.111.111.111 |
+            Console.WriteLine("| Time              | IP              | Port  | Result  | Ping | Local Interface |");
+         //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | ✓    | 111.111.111.111 |
         }
 
         public static void ResetPrintLine()
@@ -115,7 +115,11 @@ namespace Tring
 
         private static void PrintTime(DateTime startTime, DateTime currentTime)
         {
-            var toPrint = $"{startTime.ToString(timeFormat)}-{currentTime.ToString(timeFormat)}";
+            var toPrint = $"{startTime.ToString(timeFormat)}";
+            if(startTime.ToString(timeFormat) != currentTime.ToString(timeFormat))
+            {
+                toPrint += $"-{currentTime.ToString(timeFormat)}";
+            }
             Console.ResetColor();
             Console.Write($"| {toPrint.PadRight(17)} | ");
         }
