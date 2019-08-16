@@ -4,78 +4,120 @@ namespace Tring
 {
     internal class OutputPrinter
     {
-        public static void PrintLogEntry(ConnectionTester.ConnectionStatus status, string host, ushort port, string currentTime, string startTime = "", string localTrace = "")
+        private const string timeFormat = "HH:mm:ss";
+
+        public static void PrintLogEntry(DateTime startTime, ConnectionResult status)
         {
-            PrintTime(currentTime, startTime);
-            PrintHost(host, port);
-            PrintStatus(status);
-            PrintEndPoint(localTrace);
+            PrintTime(startTime, status.TimeStamp);
+            PrintRequest(status);
+            PrintResult(status.Connect);
+            PrintPing(status.PingResult);
+            PrintLocalInterface(status.LocalInterface);
         }
+
+        public static void PrintTable()
+        {
+            Console.WriteLine("| Time              | IP              | Port  | Result  | Ping | LocalInterface  |");
+         //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | ✓    | 111.111.111.111 |
+        }
+
         public static void ResetPrintLine()
         {
             Console.SetCursorPosition(0,Console.CursorTop);
         }
+
         public static void HideCursor()
         {
             Console.CursorVisible = false;
         }
+
         public static void CleanUp()
         {
             Console.CursorVisible = true;
             Console.ResetColor();
         }
-        private static void PrintStatus(ConnectionTester.ConnectionStatus status)
+
+        private static void PrintLocalInterface(string localInterface)
         {
-            switch(status)
+            Console.ResetColor();
+            Console.Write($"{localInterface.PadRight(15)} |");
+        }
+
+        private static void PrintPing(ConnectionTester.ConnectionStatus pingResult)
+        {
+            var result = "";
+            switch (pingResult)
             {
                 case ConnectionTester.ConnectionStatus.Succes:
-                    PrintConnectionSucces();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    result = "PONG";
                     break;
-                case ConnectionTester.ConnectionStatus.DnsFailed:
-                    PrintConnectionFailer("Dns lookup failed");
+                case ConnectionTester.ConnectionStatus.Untried:
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    result = "-";
                     break;
-                case ConnectionTester.ConnectionStatus.DnsTimeOut:
-                    PrintConnectionFailer("Dns lookup timed out");
-                    break;
-                default:
-                    PrintConnectionFailer(status.ToString());
+                case ConnectionTester.ConnectionStatus.TimeOut:
+                case ConnectionTester.ConnectionStatus.Refused:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    result = "NOK";
                     break;
             }
-        }
-        private static void PrintTime(string currentTime,string startTime ="")
-        {
+            Console.Write($"{result.PadRight(4)}");
             Console.ResetColor();
-            if (string.IsNullOrEmpty(startTime))
+            Console.Write(" | ");
+        }
+
+        private static void PrintResult(ConnectionTester.ConnectionStatus connect)
+        {
+            var result = "";
+            switch (connect)
             {
-                Console.Write($"{currentTime} ");
+                case ConnectionTester.ConnectionStatus.Succes:
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    result = "OK";
+                    break;
+                case ConnectionTester.ConnectionStatus.TimeOut:
+                    result = "Timeout";
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case ConnectionTester.ConnectionStatus.Refused:
+                    result = "Refused";
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
             }
-            else
+            Console.Write($"{result.PadRight(7)}");
+            Console.ResetColor();
+            Console.Write(" | ");
+        }
+
+        private static void PrintRequest(ConnectionResult request)
+        {
+            var ipOrError ="";
+            switch(request.DnsResult)
             {
-                Console.Write($"{startTime} - {currentTime} ");
+                case ConnectionTester.ConnectionStatus.Succes:
+                case ConnectionTester.ConnectionStatus.Untried:
+                    ipOrError = request.Request.Ip;
+                    break;
+                case ConnectionTester.ConnectionStatus.TimeOut:
+                    ipOrError = "DNS timeout";
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case ConnectionTester.ConnectionStatus.Refused:
+                    ipOrError = "DNS not found";
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
             }
-        }
-        private static void PrintHost(string host, ushort port)
-        {
+            Console.Write($"{ipOrError.PadRight(15)}");
             Console.ResetColor();
-            Console.Write($"Connecting to {host}:{port}");
+            Console.Write($" | {request.Request.Port.ToString().PadRight(5)} | ");
         }
-        private static void PrintEndPoint(string endPointIp)
+
+        private static void PrintTime(DateTime startTime, DateTime currentTime)
         {
+            var toPrint = $"{startTime.ToString(timeFormat)}-{currentTime.ToString(timeFormat)}";
             Console.ResetColor();
-            if (!string.IsNullOrEmpty(endPointIp))
-                Console.Write($" (local interface used: {endPointIp})");
-        }
-        private static void PrintConnectionSucces()
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(" OK");
-            Console.ResetColor();
-        }
-        private static void PrintConnectionFailer(string reason)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write($" NOK : {reason}");
-            Console.ResetColor();
+            Console.Write($"| {toPrint.PadRight(17)} | ");
         }
     }
 }

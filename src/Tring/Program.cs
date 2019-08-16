@@ -5,7 +5,6 @@ namespace Tring
 {
     class Program
     {
-        private const string timeFormat = "HH:mm:ss";
         static void Main(string[] args)
         {
             if (args.Length < 1) return;
@@ -35,26 +34,26 @@ namespace Tring
                         throw new ArgumentException("To many arguments provided: please provide only a host and a port");
                 }
 
-                var startTime = DateTime.Now.ToString(timeFormat);
-                var status = connectionTester.TryConnect(out var localTrace);
+                var startTime = DateTime.Now;
+                var result = connectionTester.TryConnect();
+                var newResult = result;
                 OutputPrinter.HideCursor();
+                OutputPrinter.PrintTable();
                 while (true)
-                {
-                    var watch = System.Diagnostics.Stopwatch.StartNew();
-                    var newStatus = connectionTester.TryConnect(out localTrace);
-                    if (status != newStatus)
-                    {
-                        status = newStatus;
-                        Console.CursorTop++;
-                    }
+                { 
                     OutputPrinter.ResetPrintLine();
-                    OutputPrinter.PrintLogEntry(
-                                        status,
-                                        connectionTester.Host, connectionTester.Port,
-                                        DateTime.Now.ToString(timeFormat), startTime, localTrace);
-
+                    OutputPrinter.PrintLogEntry(startTime,newResult);
                     if (optionWatch.Value() != "on")
                         break;
+
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    newResult = connectionTester.TryConnect();
+                    if (!result.SameOutcome(newResult))
+                    {
+                        result = newResult;
+                        startTime = DateTime.Now;
+                        Console.CursorTop++;
+                    }
                     watch.Stop();
                     if (watch.ElapsedMilliseconds < 1000)
                     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
@@ -9,105 +10,106 @@ namespace Tring
     {
         private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(\:(?<port>.+))?$", RegexOptions.Compiled);
         private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>.+))?(\/.+)*", RegexOptions.Compiled);
-        private readonly bool HostIsURL;
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
-        public enum ConnectionStatus { Succes, TimeOut, DnsFailed, DnsTimeOut, Refused };
-        public string Host { get; }
-        public ushort Port { get; }
+        public enum ConnectionStatus { Succes, TimeOut, Refused, Untried};
+
+        public ConnectionRequest request;
 
         public ConnectionTester(string UrlOrIp, string port = "")
         {
-            if (CheckIfIP(UrlOrIp, out var hostFound, out var portFound))
-            {
-                Port = portFound;
-                Host = hostFound;
-                HostIsURL = false;
-            }
-            else if (CheckIfURL(UrlOrIp, out hostFound, out portFound))
-            {
-                Port = portFound;
-                Host = hostFound;
-                HostIsURL = true;
-            }
-            else
-            {
+            request = CheckIfIP(UrlOrIp);
+            if(request == null)
+                request = CheckIfURL(UrlOrIp);
+            if (request == null)
                 throw new ArgumentException($"Input: {UrlOrIp} is nether a ip nor a url.");
-            }
 
             if (!string.IsNullOrEmpty(port))
             {
-                Port = PortLogic.StringToPort(port);
+                request.Port = PortLogic.StringToPort(port);
             }
-            if (Port == PortLogic.UnsetPort) throw new ArgumentException($"The input you provided for the port is not valid, your input: {port}");
+            if (request.Port == PortLogic.UnsetPort) throw new ArgumentException($"The input you provided for the port is not valid, your input: {port}");
         }
 
-        public ConnectionStatus TryConnect(out string connectionPath)
+        public ConnectionResult TryConnect()
         {
-            string ip;
-            connectionPath = "";
+            var toReturn = new ConnectionResult();
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
-            if (HostIsURL)
+            if (string.IsNullOrEmpty(request.Ip))
             {
-                var lookupResult = DnsLookup(Host, waitTime, out var host);
-                if (host == null) return lookupResult;
-                ip = host.AddressList[0].ToString();
-                result = socket.BeginConnect(ip, Port, null, null);
+                toReturn.DnsResult = DnsLookup(request.Url);
+                if (toReturn.DnsResult != ConnectionStatus.Succes)
+                    return toReturn;
             }
-            else
-            {
-                ip = Host;
-                result = socket.BeginConnect(ip, Port, null, null);
-            }
+            toReturn.Request = request;
+            result = socket.BeginConnect(request.Ip, request.Port, null, null);
             bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
+            toReturn.LocalInterface = GetLocalPath(request.Ip, socket);
             if (socket.Connected)
             {
                 socket.EndConnect(result);
-                return ConnectionStatus.Succes;
+                toReturn.Connect = ConnectionStatus.Succes;
             }
             else
             {
-                connectionPath = GetLocalPath(ip, socket);
                 socket.Close();
+                toReturn.PingResult = PingHost(request.Ip);
                 if (connectionSuccess)
-                {
-                    return ConnectionStatus.Refused;
-                }
+                    toReturn.Connect = ConnectionStatus.Refused;
                 else
+                    toReturn.Connect = ConnectionStatus.TimeOut;
+            }
+            return toReturn;
+        }
+        public static ConnectionStatus PingHost(string nameOrAddress)
+        {
+            bool pingable = false;
+            Ping pinger = null;
+
+            try
+            {
+                pinger = new Ping();
+                PingReply reply = pinger.Send(nameOrAddress);
+                pingable = reply.Status == IPStatus.Success;
+            }
+            finally
+            {
+                if (pinger != null)
                 {
-                    return ConnectionStatus.TimeOut;
+                    pinger.Dispose();
                 }
             }
+
+            return pingable ? ConnectionStatus.Succes : ConnectionStatus.TimeOut;
         }
 
-        private static ConnectionStatus DnsLookup(string host, TimeSpan timeToTry, out IPHostEntry result)
+        private ConnectionStatus DnsLookup(string host)
         {
-            result = null;
             IAsyncResult lookupResult = Dns.BeginGetHostEntry(host, null, null);
-            bool DnsLookupSucces = lookupResult.AsyncWaitHandle.WaitOne(timeToTry);
+            bool DnsLookupSucces = lookupResult.AsyncWaitHandle.WaitOne(waitTime);
             if (DnsLookupSucces)
             {
                 try
                 {
-                    result = Dns.EndGetHostEntry(lookupResult);
+                    request.Ip = Dns.EndGetHostEntry(lookupResult)?.AddressList[0]?.ToString();
                     return ConnectionStatus.Succes;
                 }
                 catch (Exception)
                 {
-                    return ConnectionStatus.DnsFailed;
+                    return ConnectionStatus.Refused;
                 }
             }
             else
             {
-                return ConnectionStatus.DnsTimeOut;
+                return ConnectionStatus.TimeOut;
             }
         }
 
-        private static bool CheckIfIP(string toCheck, out string host, out ushort port)
+        private static ConnectionRequest CheckIfIP(string toCheck)
         {
-            host = "";
-            port = PortLogic.UnsetPort;
+            var host = "";
+            var port = PortLogic.UnsetPort;
             var ipMatch = checkIfIp.Match(toCheck);
             if (ipMatch.Success)
             {
@@ -120,19 +122,22 @@ namespace Tring
                         port = PortLogic.DeteminePortByProtocol(ipMatch.Groups["port"].Value);
                     }
                 }
-                return true;
             }
-            return false;
+            else
+            {
+                return null;
+            }
+            return new ConnectionRequest(host, port);
         }
 
-        private static bool CheckIfURL(string toCheck, out string host, out ushort port)
+        private static ConnectionRequest CheckIfURL(string toCheck)
         {
-            host = "";
-            port = PortLogic.UnsetPort;
+            var url = "";
+            var port = PortLogic.UnsetPort;
             var urlMatch = checkIfUrl.Match(toCheck);
             if (urlMatch.Success)
             {
-                host = urlMatch.Groups["host"].Value;
+                url = urlMatch.Groups["host"].Value;
                 if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
                 {
                     port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
@@ -145,9 +150,12 @@ namespace Tring
                 {
                     port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["protocol"].Value);
                 }
-                return true;
             }
-            return false;
+            else
+            {
+                return null;
+            }
+            return new ConnectionRequest("", port,url);
         }
 
         private static string GetLocalPath(string ip, Socket socket)
