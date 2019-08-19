@@ -34,7 +34,7 @@ namespace Tring
 
         public static void PrintTable()
         {
-            Console.WriteLine("| Time              | IP              | Port  | Result  | Ping    | Local Interface |");
+            Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface |");
             //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | 1000 ms | 111.111.111.111 |
         }
 
