@@ -28,7 +28,7 @@ namespace Tring
             DnsResult = ConnectionStatus.Untried;
             Connect = ConnectionStatus.Untried;
             PingResult = ConnectionStatus.Untried;
-            Request = null;
+            Request = new ConnectionRequest();
             LocalInterface = "";
         }
 

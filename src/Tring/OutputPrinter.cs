@@ -46,15 +46,27 @@ namespace Tring
 
         public static void HideCursor()
         {
-            if(!Console.IsOutputRedirected)
+            if (!Console.IsOutputRedirected)
                 Console.CursorVisible = false;
         }
 
         public static void CleanUp()
         {
             if (!Console.IsOutputRedirected)
+            {
                 Console.CursorVisible = true;
-            Console.ResetColor();
+                Console.ResetColor();
+                Console.CursorTop++;
+            }
+        }
+        public static void SetCleanUp()
+        {
+            Console.CancelKeyPress += delegate {
+                if (!Console.IsOutputRedirected)
+                {
+                    CleanUp();
+                }
+            };
         }
 
         private static void PrintLocalInterface(string localInterface)

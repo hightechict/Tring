@@ -19,7 +19,7 @@ namespace Tring
 {
     class ConnectionRequest
     {
-        public ConnectionRequest(string ip, ushort port, string url = "")
+        public ConnectionRequest(string ip="", ushort port = 0, string url = "")
         {
             Ip = ip;
             Url = url;
