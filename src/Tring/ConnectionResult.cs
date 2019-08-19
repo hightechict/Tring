@@ -36,8 +36,9 @@ namespace Tring
         public DateTime TimeStamp { get; set; }
         public ConnectionStatus DnsResult { get; set; }
         public ConnectionStatus Connect { get; set; }
+        public long ConnectionTimeMs { get; set; }
         public ConnectionStatus PingResult { get; set; }
-        public long PingTimeMS { get; set; }
+        public long PingTimeMs { get; set; }
         public string LocalInterface { get; set; }
 
         public bool SameOutcome(ConnectionResult result)

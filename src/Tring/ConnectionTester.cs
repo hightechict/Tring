@@ -60,18 +60,21 @@ namespace Tring
                 if (toReturn.DnsResult != ConnectionStatus.Succes)
                     return toReturn;
             }
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             result = socket.BeginConnect(request.Ip, request.Port, null, null);
             bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
             toReturn.LocalInterface = GetLocalPath(request.Ip, socket);
             if (socket.Connected)
             {
+                watch.Stop();
                 socket.EndConnect(result);
+                toReturn.ConnectionTimeMs = watch.ElapsedMilliseconds;
                 toReturn.Connect = ConnectionStatus.Succes;
             }
             else
             {
                 socket.Close();
-                (toReturn.PingResult,toReturn.PingTimeMS) = PingHost(request.Ip);
+                (toReturn.PingResult, toReturn.PingTimeMs) = PingHost(request.Ip);
                 if (connectionSuccess)
                     toReturn.Connect = ConnectionStatus.Refused;
                 else
@@ -79,17 +82,16 @@ namespace Tring
             }
             return toReturn;
         }
-        public static (ConnectionStatus status,long timeInMs) PingHost(string nameOrAddress)
+        public static (ConnectionStatus status, long timeInMs) PingHost(string nameOrAddress)
         {
             bool pingable = false;
             Ping pinger = null;
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            PingReply reply;
             try
             {
                 pinger = new Ping();
-                PingReply reply = pinger.Send(nameOrAddress);
+                reply = pinger.Send(nameOrAddress);
                 pingable = reply.Status == IPStatus.Success;
-                watch.Stop();
             }
             finally
             {
@@ -98,7 +100,7 @@ namespace Tring
                     pinger.Dispose();
                 }
             }
-            return (pingable ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, watch.ElapsedMilliseconds);
+            return (pingable ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, reply.RoundtripTime);
         }
 
         private ConnectionStatus DnsLookup(string host)

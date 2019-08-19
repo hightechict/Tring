@@ -27,15 +27,15 @@ namespace Tring
         {
             PrintTime(startTime, status.TimeStamp);
             PrintRequest(status);
-            PrintResult(status.Connect);
-            PrintPing(status.PingResult,status.PingTimeMS);
+            PrintResult(status.Connect, status.ConnectionTimeMs);
+            PrintPing(status.PingResult, status.PingTimeMs);
             PrintLocalInterface(status.LocalInterface);
         }
 
         public static void PrintTable()
         {
-            Console.WriteLine("| Time              | IP              | Port  | Result  | Ping   | Local Interface |");
-         //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | 1000MS | 111.111.111.111 |
+            Console.WriteLine("| Time              | IP              | Port  | Result  | Ping    | Local Interface |");
+            //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | 1000 ms | 111.111.111.111 |
         }
 
         public static void ResetPrintLine()
@@ -60,14 +60,14 @@ namespace Tring
             Console.Write($"{localInterface.PadRight(15)} |");
         }
 
-        private static void PrintPing(ConnectionTester.ConnectionStatus pingResult,long responseTimeMS)
+        private static void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
         {
             var result = "";
             switch (pingResult)
             {
                 case ConnectionTester.ConnectionStatus.Succes:
                     Console.ForegroundColor = ConsoleColor.Green;
-                    result = $"{responseTimeMS.ToString()}MS";
+                    result = $"{responseTimeMS.ToString()} ms";
                     break;
                 case ConnectionTester.ConnectionStatus.Untried:
                     Console.ForegroundColor = ConsoleColor.Gray;
@@ -79,19 +79,19 @@ namespace Tring
                     result = "NOK";
                     break;
             }
-            Console.Write($"{result.PadRight(6)}");
+            Console.Write($"{result.PadRight(7)}");
             Console.ResetColor();
             Console.Write(" | ");
         }
 
-        private static void PrintResult(ConnectionTester.ConnectionStatus connect)
+        private static void PrintResult(ConnectionTester.ConnectionStatus connect, long responseTimeMS)
         {
             var result = "";
             switch (connect)
             {
                 case ConnectionTester.ConnectionStatus.Succes:
                     Console.ForegroundColor = ConsoleColor.Green;
-                    result = "OK";
+                    result = $"{responseTimeMS.ToString()} ms";
                     break;
                 case ConnectionTester.ConnectionStatus.TimeOut:
                     result = "Timeout";
@@ -133,7 +133,7 @@ namespace Tring
         private static void PrintTime(DateTime startTime, DateTime currentTime)
         {
             var toPrint = $"{startTime.ToString(timeFormat)}";
-            if(startTime.ToString(timeFormat) != currentTime.ToString(timeFormat))
+            if (startTime.ToString(timeFormat) != currentTime.ToString(timeFormat))
             {
                 toPrint += $"-{currentTime.ToString(timeFormat)}";
             }
