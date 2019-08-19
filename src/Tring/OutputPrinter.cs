@@ -35,29 +35,32 @@ namespace Tring
         public static void PrintTable()
         {
             Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface |");
-            //example output      | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | 1000 ms | 111.111.111.111 |
+            //example output   | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Timeout | 1000 ms | 111.111.111.111 |
         }
 
         public static void ResetPrintLine()
         {
-            Console.SetCursorPosition(0, Console.CursorTop);
+            if (!Console.IsOutputRedirected)
+                Console.SetCursorPosition(0, Console.CursorTop);
         }
 
         public static void HideCursor()
         {
-            Console.CursorVisible = false;
+            if(!Console.IsOutputRedirected)
+                Console.CursorVisible = false;
         }
 
         public static void CleanUp()
         {
-            Console.CursorVisible = true;
+            if (!Console.IsOutputRedirected)
+                Console.CursorVisible = true;
             Console.ResetColor();
         }
 
         private static void PrintLocalInterface(string localInterface)
         {
             Console.ResetColor();
-            Console.Write($"{localInterface.PadRight(15)} |");
+            Console.Write($"{localInterface.PadRight(15)} |\n");
         }
 
         private static void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)

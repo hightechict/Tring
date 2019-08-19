@@ -50,31 +50,32 @@ namespace Tring
                     default:
                         throw new ArgumentException("To many arguments provided: please provide only a host and a port");
                 }
-
-                var startTime = DateTime.Now;
-                var result = connectionTester.TryConnect();
-                var newResult = result;
-                OutputPrinter.HideCursor();
                 OutputPrinter.PrintTable();
+                var startTime = DateTime.Now;
+                ConnectionResult result = new ConnectionResult();
                 while (true)
                 {
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var newResult = connectionTester.TryConnect();
                     OutputPrinter.ResetPrintLine();
                     OutputPrinter.PrintLogEntry(startTime, newResult);
                     if (optionWatch.Value() != "on")
                         break;
-
-                    var watch = System.Diagnostics.Stopwatch.StartNew();
-                    newResult = connectionTester.TryConnect();
-                    if (!result.SameOutcome(newResult))
-                    {
-                        result = newResult;
-                        startTime = DateTime.Now;
-                        Console.CursorTop++;
-                    }
-                    watch.Stop();
+                    OutputPrinter.HideCursor();
                     if (watch.ElapsedMilliseconds < 1000)
                     {
                         System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
+                    }
+                    // do this after the sleep because if a user shuts down the program the console will overwrite the last result
+                    if (result.SameOutcome(newResult))
+                    {
+                        if(!Console.IsOutputRedirected)
+                            Console.CursorTop--;
+                    }
+                    else
+                    {
+                        result = newResult;
+                        startTime = DateTime.Now;
                     }
                 }
                 OutputPrinter.CleanUp();
