@@ -71,7 +71,7 @@ namespace Tring
             else
             {
                 socket.Close();
-                toReturn.PingResult = PingHost(request.Ip);
+                (toReturn.PingResult,toReturn.PingTimeMS) = PingHost(request.Ip);
                 if (connectionSuccess)
                     toReturn.Connect = ConnectionStatus.Refused;
                 else
@@ -79,16 +79,17 @@ namespace Tring
             }
             return toReturn;
         }
-        public static ConnectionStatus PingHost(string nameOrAddress)
+        public static (ConnectionStatus status,long timeInMs) PingHost(string nameOrAddress)
         {
             bool pingable = false;
             Ping pinger = null;
-
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 pinger = new Ping();
                 PingReply reply = pinger.Send(nameOrAddress);
                 pingable = reply.Status == IPStatus.Success;
+                watch.Stop();
             }
             finally
             {
@@ -97,8 +98,7 @@ namespace Tring
                     pinger.Dispose();
                 }
             }
-
-            return pingable ? ConnectionStatus.Succes : ConnectionStatus.TimeOut;
+            return (pingable ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, watch.ElapsedMilliseconds);
         }
 
         private ConnectionStatus DnsLookup(string host)

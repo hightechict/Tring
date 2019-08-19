@@ -37,6 +37,7 @@ namespace Tring
         public ConnectionStatus DnsResult { get; set; }
         public ConnectionStatus Connect { get; set; }
         public ConnectionStatus PingResult { get; set; }
+        public long PingTimeMS { get; set; }
         public string LocalInterface { get; set; }
 
         public bool SameOutcome(ConnectionResult result)
