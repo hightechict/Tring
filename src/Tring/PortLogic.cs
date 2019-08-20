@@ -25,11 +25,11 @@ namespace Tring
             ushort toReturn;
             if (!ushort.TryParse(toConvert, out toReturn))
             {
-                toReturn = DeteminePortByProtocol(toConvert);
+                toReturn = DeterminePortByProtocol(toConvert);
             }
             return toReturn;
         }
-        public static ushort DeteminePortByProtocol(string protocol)
+        public static ushort DeterminePortByProtocol(string protocol)
         {
             switch (protocol.ToLower())
             {
@@ -61,6 +61,40 @@ namespace Tring
                     return 3389;
                 default:
                     return 0;
+            }
+        }
+        public static string DetermineProtocolByPort(ushort port)
+        {
+            switch (port)
+            {
+                case 21:
+                    return "ftp";
+                case 22:
+                    return "ssh";
+                case 25:
+                    return "smtp";
+                case 53:
+                    return "dns";
+                case 80:
+                    return "http";
+                case 110:
+                    return "pop";
+                case 143:
+                    return "imap";
+                case 161:
+                    return "snmp";
+                case 179:
+                    return "bgp";
+                case 389:
+                    return "ldap";
+                case 443:
+                    return "https";
+                case 636:
+                    return "ldaps";
+                case 3389:
+                    return "rdp";
+                default:
+                    return "Unknown";
             }
         }
     }

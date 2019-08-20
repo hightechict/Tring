@@ -138,7 +138,7 @@ namespace Tring
                     port = PortLogic.StringToPort(ipMatch.Groups["port"].Value);
                     if (port == PortLogic.UnsetPort)
                     {
-                        port = PortLogic.DeteminePortByProtocol(ipMatch.Groups["port"].Value);
+                        port = PortLogic.DeterminePortByProtocol(ipMatch.Groups["port"].Value);
                     }
                 }
             }
@@ -162,12 +162,12 @@ namespace Tring
                     port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
                     if (port == PortLogic.UnsetPort)
                     {
-                        port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["port"].Value);
+                        port = PortLogic.DeterminePortByProtocol(urlMatch.Groups["port"].Value);
                     }
                 }
                 else if (port == PortLogic.UnsetPort && !string.IsNullOrEmpty(urlMatch.Groups["protocol"].Value))
                 {
-                    port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["protocol"].Value);
+                    port = PortLogic.DeterminePortByProtocol(urlMatch.Groups["protocol"].Value);
                 }
             }
             else

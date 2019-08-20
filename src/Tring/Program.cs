@@ -24,8 +24,6 @@ namespace Tring
     {
         static void Main(string[] args)
         {
-            if (args.Length < 1) return;
-
             var app = new CommandLineApplication
             {
                 Name = "quick-connect"
