@@ -26,7 +26,7 @@ namespace Tring
     internal class ConnectionTester
     {
         private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(\:(?<port>.+))?$", RegexOptions.Compiled);
-        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>.+))?(\/.+)*", RegexOptions.Compiled);
+        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>\w+))?(\/.+)*", RegexOptions.Compiled);
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
         public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };

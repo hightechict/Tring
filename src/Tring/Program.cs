@@ -40,7 +40,7 @@ namespace Tring
                 switch (arguments.Values.Count)
                 {
                     case 0:
-                        throw new ArgumentException("No arguments provided: please provide atleast a host");
+                        throw new ArgumentException("No arguments provided: please provide a host and a port or protocol");
                     case 1:
                         connectionTester = new ConnectionTester(arguments.Values[0]);
                         break;
