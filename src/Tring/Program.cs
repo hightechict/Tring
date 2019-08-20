@@ -26,7 +26,7 @@ namespace Tring
         {
             var app = new CommandLineApplication
             {
-                Name = "quick-connect"
+                Name = "Tring"
             };
             app.HelpOption("-?|-h|--help");
             var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.", multipleValues: true);
@@ -48,15 +48,15 @@ namespace Tring
                     default:
                         throw new ArgumentException("To many arguments provided: please provide only a host and a port");
                 }
-                OutputPrinter.SetCleanUp();
+                OutputPrinter.SetupCleanUp();
                 OutputPrinter.PrintTable();
-                var startTime = DateTime.Now;
-                ConnectionResult result = new ConnectionResult();
+                var startTime = DateTimeOffset.Now;
+                ConnectionResult result =null;
                 while (true)
                 {
                     var watch = System.Diagnostics.Stopwatch.StartNew();
                     var newResult = connectionTester.TryConnect();
-                    if (result.SameOutcome(newResult))
+                    if (result?.IsEquivalent(newResult) ?? false)
                     {
                         if (!Console.IsOutputRedirected)
                             Console.CursorTop--;
@@ -64,7 +64,7 @@ namespace Tring
                     else
                     {
                         result = newResult;
-                        startTime = DateTime.Now;
+                        startTime = DateTimeOffset.Now;
                     }
                     OutputPrinter.ResetPrintLine();
                     OutputPrinter.PrintLogEntry(startTime, newResult);

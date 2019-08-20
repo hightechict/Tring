@@ -23,7 +23,7 @@ namespace Tring
     {
         private const string timeFormat = "HH:mm:ss";
 
-        public static void PrintLogEntry(DateTime startTime, ConnectionResult status)
+        public static void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status)
         {
             PrintTime(startTime, status.TimeStamp);
             PrintRequest(status);
@@ -34,8 +34,9 @@ namespace Tring
 
         public static void PrintTable()
         {
-            Console.WriteLine("| Time              | IP              | Port  | Protocol | Connect | Ping    | Local Interface |");
+            Console.WriteLine("| Time              | IP or hostname  | Port  | Protocol | Connect | Ping    | Local Interface |");
             // example output  | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Unknown  | Timeout | 1000 ms | 111.111.111.111 |
+            //                                     | google.nl       | 
         }
 
         public static void ResetPrintLine()
@@ -59,7 +60,7 @@ namespace Tring
                 Console.CursorTop++;
             }
         }
-        public static void SetCleanUp()
+        public static void SetupCleanUp()
         {
             Console.CancelKeyPress += delegate {
                 if (!Console.IsOutputRedirected)
@@ -145,7 +146,7 @@ namespace Tring
             Console.Write($" | {request.Request.Port.ToString().PadRight(5)} | {PortLogic.DetermineProtocolByPort(request.Request.Port).PadRight(8)} | ");
         }
 
-        private static void PrintTime(DateTime startTime, DateTime currentTime)
+        private static void PrintTime(DateTimeOffset startTime, DateTimeOffset currentTime)
         {
             var toPrint = $"{startTime.ToString(timeFormat)}";
             if (startTime.ToString(timeFormat) != currentTime.ToString(timeFormat))

@@ -26,8 +26,8 @@ namespace Tring
             Port = port;
         }
 
-        public string Ip { get; set; }
-        public string Url { get; set; }
-        public ushort Port { get; set; }
+        public string Ip { get; }
+        public string Url { get; }
+        public ushort Port { get; }
     }
 }

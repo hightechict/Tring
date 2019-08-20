@@ -22,26 +22,36 @@ namespace Tring
 {
     class ConnectionResult
     {
-        public ConnectionResult()
+        public ConnectionResult(
+            ConnectionRequest request,
+            ConnectionStatus dnsResult = ConnectionStatus.Untried,
+            ConnectionStatus connect = ConnectionStatus.Untried,
+            ConnectionStatus ping = ConnectionStatus.Untried,
+            string localInterface = "",
+            long connectionTime = 0,
+            long pingTime =0
+            )
         {
-            TimeStamp = DateTime.Now;
-            DnsResult = ConnectionStatus.Untried;
-            Connect = ConnectionStatus.Untried;
-            PingResult = ConnectionStatus.Untried;
-            Request = new ConnectionRequest();
-            LocalInterface = "";
+            TimeStamp = DateTimeOffset.Now;
+            DnsResult = dnsResult;
+            Connect = connect;
+            PingResult = ping;
+            Request = request;
+            LocalInterface = localInterface;
+            ConnectionTimeMs = connectionTime;
+            PingTimeMs = pingTime;
         }
 
-        public ConnectionRequest Request { get; set; }
-        public DateTime TimeStamp { get; set; }
-        public ConnectionStatus DnsResult { get; set; }
-        public ConnectionStatus Connect { get; set; }
-        public long ConnectionTimeMs { get; set; }
-        public ConnectionStatus PingResult { get; set; }
-        public long PingTimeMs { get; set; }
-        public string LocalInterface { get; set; }
+        public ConnectionRequest Request { get; }
+        public DateTimeOffset TimeStamp { get; }
+        public ConnectionStatus DnsResult { get; }
+        public ConnectionStatus Connect { get; }
+        public long ConnectionTimeMs { get; }
+        public ConnectionStatus PingResult { get; }
+        public long PingTimeMs { get; }
+        public string LocalInterface { get; }
 
-        public bool SameOutcome(ConnectionResult result)
+        public bool IsEquivalent(ConnectionResult result)
         {
             return
                 Request.Ip == result.Request.Ip &&
