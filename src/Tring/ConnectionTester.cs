@@ -35,7 +35,7 @@ namespace Tring
 
         public ConnectionTester(string UrlOrIp, string port = "")
         {
-            request = CheckIfIP(UrlOrIp);
+            request = CheckIfIp(UrlOrIp);
             if (request == null)
                 request = CheckIfURL(UrlOrIp);
             if (request == null)
@@ -84,23 +84,11 @@ namespace Tring
         }
         public static (ConnectionStatus status, long timeInMs) PingHost(string nameOrAddress)
         {
-            bool pingable = false;
-            Ping pinger = null;
-            PingReply reply;
-            try
+            using (var ping = new Ping())
             {
-                pinger = new Ping();
-                reply = pinger.Send(nameOrAddress);
-                pingable = reply.Status == IPStatus.Success;
+                var reply = ping.Send(nameOrAddress);
+                return (reply?.Status == IPStatus.Success ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, reply?.RoundtripTime ?? long.MinValue);
             }
-            finally
-            {
-                if (pinger != null)
-                {
-                    pinger.Dispose();
-                }
-            }
-            return (pingable ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, reply.RoundtripTime);
         }
 
         private ConnectionStatus DnsLookup(string host)
@@ -125,7 +113,7 @@ namespace Tring
             }
         }
 
-        private static ConnectionRequest CheckIfIP(string toCheck)
+        private static ConnectionRequest CheckIfIp(string toCheck)
         {
             var host = "";
             var port = PortLogic.UnsetPort;
