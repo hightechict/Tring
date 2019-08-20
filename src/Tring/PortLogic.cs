@@ -55,8 +55,13 @@ namespace Tring
                     return 389;
                 case "https":
                     return 443;
+                case "smb":
+                case "smb2":
+                    return 445;
                 case "ldaps":
                     return 636;
+                case "sql":
+                    return 1433;
                 case "rdp":
                     return 3389;
                 default:
@@ -89,8 +94,12 @@ namespace Tring
                     return "ldap";
                 case 443:
                     return "https";
+                case 445:
+                    return "smb2";
                 case 636:
                     return "ldaps";
+                case 1433:
+                    return "sql";
                 case 3389:
                     return "rdp";
                 default:
