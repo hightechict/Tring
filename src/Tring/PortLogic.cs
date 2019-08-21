@@ -15,11 +15,33 @@
 //You should have received a copy of the GNU Lesser General Public License
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Tring
 {
     internal class PortLogic
     {
         public const int UnsetPort = -1;
+        public static readonly Dictionary<string, int> PortByProtocols = new Dictionary<string, int>
+        {
+            ["ftp"] = 21,
+            ["ssh"] = 22,
+            ["smtp"] = 25,
+            ["dns"] = 53,
+            ["http"] = 80,
+            ["pop"] = 110,
+            ["imap"] = 143,
+            ["snmp"] = 161,
+            ["bgp"] = 179,
+            ["ldap"] = 389,
+            ["https"] = 443,
+            ["smb"] = 445,
+            ["smb2"] = 445,
+            ["ldaps"] = 636,
+            ["sql"] = 1433,
+            ["rdp"] = 3389
+        };
         public static int StringToPort(string toConvert)
         {
             if (!int.TryParse(toConvert, out var toReturn))
@@ -30,80 +52,11 @@ namespace Tring
         }
         public static int DeterminePortByProtocol(string protocol)
         {
-            switch (protocol.ToLower())
-            {
-                case "ftp":
-                    return 21;
-                case "ssh":
-                    return 22;
-                case "smtp":
-                    return 25;
-                case "dns":
-                    return 53;
-                case "http":
-                    return 80;
-                case "pop":
-                    return 110;
-                case "imap":
-                    return 143;
-                case "snmp":
-                    return 161;
-                case "bgp":
-                    return 179;
-                case "ldap":
-                    return 389;
-                case "https":
-                    return 443;
-                case "smb":
-                case "smb2":
-                    return 445;
-                case "ldaps":
-                    return 636;
-                case "sql":
-                    return 1433;
-                case "rdp":
-                    return 3389;
-                default:
-                    return UnsetPort;
-            }
+            if (PortByProtocols.ContainsKey(protocol))
+                return PortByProtocols[protocol];
+            else
+                return UnsetPort;
         }
-        public static string DetermineProtocolByPort(int port)
-        {
-            switch (port)
-            {
-                case 21:
-                    return "ftp";
-                case 22:
-                    return "ssh";
-                case 25:
-                    return "smtp";
-                case 53:
-                    return "dns";
-                case 80:
-                    return "http";
-                case 110:
-                    return "pop";
-                case 143:
-                    return "imap";
-                case 161:
-                    return "snmp";
-                case 179:
-                    return "bgp";
-                case 389:
-                    return "ldap";
-                case 443:
-                    return "https";
-                case 445:
-                    return "smb2";
-                case 636:
-                    return "ldaps";
-                case 1433:
-                    return "sql";
-                case 3389:
-                    return "rdp";
-                default:
-                    return "";
-            }
-        }
+        public static string DetermineProtocolByPort(int port) => PortByProtocols.FirstOrDefault(pair => pair.Value == port).Key ?? "";
     }
 }
