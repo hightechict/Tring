@@ -19,7 +19,7 @@ namespace Tring
 {
     class ConnectionRequest
     {
-        public ConnectionRequest(string ip="", ushort port = 0, string url = "")
+        public ConnectionRequest(string ip="", int port = PortLogic.UnsetPort, string url = "")
         {
             Ip = ip;
             Url = url;
@@ -28,6 +28,6 @@ namespace Tring
 
         public string Ip { get; }
         public string Url { get; }
-        public ushort Port { get; }
+        public int Port { get; }
     }
 }

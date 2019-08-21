@@ -2,7 +2,7 @@
   "profiles": {
     "Tring": {
       "commandName": "Project",
-      "commandLineArgs": "google.nl 81"
+      "commandLineArgs": "bla.com:81"
     }
   }
 }

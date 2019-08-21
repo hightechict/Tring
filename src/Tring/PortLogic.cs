@@ -19,17 +19,16 @@ namespace Tring
 {
     internal class PortLogic
     {
-        public const ushort UnsetPort = 0;
-        public static ushort StringToPort(string toConvert)
+        public const int UnsetPort = -1;
+        public static int StringToPort(string toConvert)
         {
-            ushort toReturn;
-            if (!ushort.TryParse(toConvert, out toReturn))
+            if (!int.TryParse(toConvert, out var toReturn))
             {
-                toReturn = DeterminePortByProtocol(toConvert);
+                return DeterminePortByProtocol(toConvert);
             }
             return toReturn;
         }
-        public static ushort DeterminePortByProtocol(string protocol)
+        public static int DeterminePortByProtocol(string protocol)
         {
             switch (protocol.ToLower())
             {
@@ -60,10 +59,10 @@ namespace Tring
                 case "rdp":
                     return 3389;
                 default:
-                    return 0;
+                    return UnsetPort;
             }
         }
-        public static string DetermineProtocolByPort(ushort port)
+        public static string DetermineProtocolByPort(int port)
         {
             switch (port)
             {
@@ -94,7 +93,7 @@ namespace Tring
                 case 3389:
                     return "rdp";
                 default:
-                    return "Unknown";
+                    return "";
             }
         }
     }

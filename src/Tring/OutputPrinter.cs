@@ -30,13 +30,14 @@ namespace Tring
             PrintResult(status.Connect, status.ConnectionTimeMs);
             PrintPing(status.PingResult, status.PingTimeMs);
             PrintLocalInterface(status.LocalInterface);
+            PrintProtocol(status.Request.Port);
+            PrintHostName(status.Request.Url);
         }
 
         public static void PrintTable()
         {
-            Console.WriteLine("| Time              | IP or hostname  | Port  | Protocol | Connect | Ping    | Local Interface |");
-            // example output  | 20:22:22-20:23:33 | 100.10.23.44    | 80222 | Unknown  | Timeout | 1000 ms | 111.111.111.111 |
-            //                                     | google.nl       | 
+            Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname  ");
+            // example output  | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    |
         }
 
         public static void ResetPrintLine()
@@ -69,11 +70,20 @@ namespace Tring
                 }
             };
         }
+        private static void PrintProtocol(int port)
+        {
+            Console.Write($"{PortLogic.DetermineProtocolByPort(port).PadRight(8)} | ");
+        }
+        private static void PrintHostName(string url)
+        {
+            Console.ResetColor();
+            Console.WriteLine(url);
+        }
 
         private static void PrintLocalInterface(string localInterface)
         {
             Console.ResetColor();
-            Console.Write($"{localInterface.PadRight(15)} |\n");
+            Console.Write($"{localInterface.PadRight(15)} | ");
         }
 
         private static void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
@@ -143,7 +153,7 @@ namespace Tring
             }
             Console.Write($"{ipOrError.PadRight(15)}");
             Console.ResetColor();
-            Console.Write($" | {request.Request.Port.ToString().PadRight(5)} | {PortLogic.DetermineProtocolByPort(request.Request.Port).PadRight(8)} | ");
+            Console.Write($" | {request.Request.Port.ToString().PadRight(5)} | ");
         }
 
         private static void PrintTime(DateTimeOffset startTime, DateTimeOffset currentTime)

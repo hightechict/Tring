@@ -26,7 +26,7 @@ namespace Tring
     internal class ConnectionTester
     {
         private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(\:(?<port>.+))?$", RegexOptions.Compiled);
-        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>\w+))?(\/.+)*", RegexOptions.Compiled);
+        private static readonly Regex checkIfUrl = new Regex(@"(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>\w+))?", RegexOptions.Compiled);
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
         public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
@@ -144,25 +144,29 @@ namespace Tring
         private static bool CreateRequestIfURL(string toCheck, out ConnectionRequest request)
         {
             request = new ConnectionRequest();
-            var port = PortLogic.UnsetPort;
-            var urlMatch = checkIfUrl.Match(toCheck);
-            if (urlMatch.Success)
+            var uriCreated = Uri.TryCreate(toCheck, UriKind.Absolute, out var uri);
+            if (uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
             {
-                var url = urlMatch.Groups["host"].Value;
-                if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
-                {
-                    port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
-                    if (port == PortLogic.UnsetPort)
-                    {
-                        port = PortLogic.DeterminePortByProtocol(urlMatch.Groups["port"].Value);
-                    }
-                }
-                else if (port == PortLogic.UnsetPort && !string.IsNullOrEmpty(urlMatch.Groups["protocol"].Value))
-                {
-                    port = PortLogic.DeterminePortByProtocol(urlMatch.Groups["protocol"].Value);
-                }
-                request = new ConnectionRequest("", port,url);
+                request = new ConnectionRequest("", uri.Port, uri.DnsSafeHost);
                 return true;
+            }
+            else
+            {
+                var urlMatch = checkIfUrl.Match(toCheck);
+                if (urlMatch.Success)
+                {
+                    var port = PortLogic.UnsetPort;
+                    if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
+                    {
+                        port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
+                        if (port == PortLogic.UnsetPort)
+                        {
+                            port = PortLogic.DeterminePortByProtocol(urlMatch.Groups["port"].Value);
+                        }
+                    }
+                    request = new ConnectionRequest("", port, urlMatch.Groups["host"].Value);
+                    return true;
+                }
             }
             return false;
         }
