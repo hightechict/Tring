@@ -80,7 +80,14 @@ namespace Tring
                 OutputPrinter.CleanUp();
                 return 0;
             });
-            var response = app.Execute(args);
+            try
+            {
+                app.Execute(args);
+            }
+            catch(Exception e)
+            {
+                Console.Error.WriteLine(e.Message);
+            }
         }
     }
 }
