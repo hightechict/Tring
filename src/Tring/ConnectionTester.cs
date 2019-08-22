@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Tring
 {
@@ -105,7 +106,7 @@ namespace Tring
             {
                 try
                 {
-                    ip = Dns.EndGetHostEntry(lookupResult)?.AddressList[0]?.ToString();
+                    ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetwork).ToString();
                     return ConnectionStatus.Succes;
                 }
                 catch (Exception)

@@ -2,7 +2,7 @@
   "profiles": {
     "Tring": {
       "commandName": "Project",
-      "commandLineArgs": "bla.com:80"
+      "commandLineArgs": "bla.com:2"
     }
   }
 }
