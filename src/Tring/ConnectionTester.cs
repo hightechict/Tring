@@ -1,151 +1,209 @@
-﻿using System;
+﻿//Copyright 2019 Hightech ICT and authors
+
+//This file is part of Tring.
+
+//Tring is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Lesser General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//Tring is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+//GNU Lesser General Public License for more details.
+
+//You should have received a copy of the GNU Lesser General Public License
+//along with Tring.If not, see<https://www.gnu.org/licenses/>.
+
+using System;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Tring
 {
     internal class ConnectionTester
     {
         private static readonly Regex checkIfIp = new Regex(@"^(?<ip>\d+\.\d+\.\d+\.\d+)(\:(?<port>.+))?$", RegexOptions.Compiled);
-        private static readonly Regex checkIfUrl = new Regex(@"^((?<protocol>http|https|ftp)\:\/\/)*(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>.+))?(\/.+)*", RegexOptions.Compiled);
-        private readonly bool HostIsURL;
+        private static readonly Regex checkIfUrl = new Regex(@"(?<host>[\w\.\-~]+(\.[\w\.\-~]+)*)(\:(?<port>\w+))?", RegexOptions.Compiled);
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
 
-        public enum ConnectionStatus{Succes, TimeOut, DnsFailed, DnsTimeOut,Refused};
-        public string Host { get; }
-        public ushort Port { get; }
+        public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
+
+        public ConnectionRequest request;
 
         public ConnectionTester(string UrlOrIp, string port = "")
         {
-            if (CheckIfIP(UrlOrIp, out var hostFound, out var portFound))
+            if(!CreateRequestIfIp(UrlOrIp,out request))
             {
-                Port = portFound;
-                Host = hostFound;
-                HostIsURL = false;
-            }
-            else if (CheckIfURL(UrlOrIp, out hostFound, out portFound))
-            {
-                Port = portFound;
-                Host = hostFound;
-                HostIsURL = true;
-            }
-            else
-            {
-                throw new ArgumentException($"Input: {UrlOrIp} is nether a ip nor a url.");
+                if (!CreateRequestIfURL(UrlOrIp, out request))
+                {
+                    throw new ArgumentException($"Input: {UrlOrIp} is nether a ip nor a url.");
+                }
             }
 
             if (!string.IsNullOrEmpty(port))
             {
-                Port = PortLogic.StringToPort(port);
+                var convertedPort = PortLogic.StringToPort(port);
+                request = new ConnectionRequest(request.Ip, convertedPort,request.Url);
             }
-            if (Port == PortLogic.UnsetPort) throw new ArgumentException($"The input you provided for the port is not valid, your input: {port}");
+            if (request.Port == PortLogic.UnsetPort) throw new ArgumentException($"The input you provided for the port is not valid, your input: {port}");
         }
 
-        public ConnectionStatus TryConnect()
+        public ConnectionResult TryConnect()
         {
-            string ip;
+            ConnectionStatus Connection, DNS;
+            DNS = ConnectionStatus.Untried;
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
-            if (HostIsURL)
+            if (string.IsNullOrEmpty(request.Ip))
             {
-                var lookupResult = DnsLookup(Host, waitTime,out var host);
-                if (host == null) return lookupResult;
-                ip = host.AddressList[0].ToString();
-                result = socket.BeginConnect(ip, Port, null, null);
+                DNS = DnsLookup(request.Url, out var ip);
+                request = new ConnectionRequest(ip, request.Port, request.Url);
+                if (DNS != ConnectionStatus.Succes)
+                    return new ConnectionResult(request,DNS);
             }
-            else
-            {
-                ip = Host;
-                result = socket.BeginConnect(ip, Port, null, null);
-            }
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            result = socket.BeginConnect(request.Ip, request.Port, null, null);
             bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
+            var localInterface = GetLocalPath(request.Ip, socket);
             if (socket.Connected)
             {
+                watch.Stop();
                 socket.EndConnect(result);
-                return ConnectionStatus.Succes;
+                var connectionTimeMs = watch.ElapsedMilliseconds;
+                Connection = ConnectionStatus.Succes;
+                return new ConnectionResult(request, DNS,Connection,ConnectionStatus.Untried,localInterface,connectionTimeMs);
             }
             else
             {
                 socket.Close();
+                var (Ping, PingTimeMs) = PingHost(request.Ip);
                 if (connectionSuccess)
-                {
-                    return ConnectionStatus.Refused;
-                }
+                    Connection = ConnectionStatus.Refused;
                 else
-                {
-                    return ConnectionStatus.TimeOut;
-                }       
+                    Connection = ConnectionStatus.TimeOut;
+                return new ConnectionResult(request, DNS, Connection, Ping, localInterface, 0, PingTimeMs);
+            }
+        }
+        public static (ConnectionStatus status, long timeInMs) PingHost(string nameOrAddress)
+        {
+            using (var ping = new Ping())
+            {
+                var reply = ping.Send(nameOrAddress);
+                return (reply?.Status == IPStatus.Success ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, reply?.RoundtripTime ?? long.MinValue);
             }
         }
 
-        private static ConnectionStatus DnsLookup(string host,TimeSpan timeToTry,out IPHostEntry result)
+        private ConnectionStatus DnsLookup(string host,out string ip)
         {
-            result = null;
+            ip = "";
             IAsyncResult lookupResult = Dns.BeginGetHostEntry(host, null, null);
-            bool DnsLookupSucces = lookupResult.AsyncWaitHandle.WaitOne(timeToTry);
+            bool DnsLookupSucces = lookupResult.AsyncWaitHandle.WaitOne(waitTime);
             if (DnsLookupSucces)
             {
                 try
                 {
-                    result = Dns.EndGetHostEntry(lookupResult);
+                    ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetwork).ToString();
                     return ConnectionStatus.Succes;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
-                    return ConnectionStatus.DnsFailed;
+                    return ConnectionStatus.Refused;
                 }
             }
             else
             {
-                return ConnectionStatus.DnsTimeOut;
+                return ConnectionStatus.TimeOut;
             }
         }
 
-        private static bool CheckIfIP(string toCheck, out string host, out ushort port)
+        private static bool CreateRequestIfIp(string toCheck,out ConnectionRequest request)
         {
-            host = "";
-            port = PortLogic.UnsetPort;
+            request = new ConnectionRequest();
+            var port = PortLogic.UnsetPort;
             var ipMatch = checkIfIp.Match(toCheck);
             if (ipMatch.Success)
             {
-                host = ipMatch.Groups["ip"].Value;
+                var host = ipMatch.Groups["ip"].Value;
                 if (!string.IsNullOrEmpty(ipMatch.Groups["port"].Value))
                 {
                     port = PortLogic.StringToPort(ipMatch.Groups["port"].Value);
-                    if(port == PortLogic.UnsetPort)
+                    if (port == PortLogic.UnsetPort)
                     {
-                        port = PortLogic.DeteminePortByProtocol(ipMatch.Groups["port"].Value);
+                        port = PortLogic.DeterminePortByProtocol(ipMatch.Groups["port"].Value);
                     }
                 }
+                request = new ConnectionRequest(host, port);
                 return true;
             }
             return false;
         }
 
-        private static bool CheckIfURL(string toCheck, out string host, out ushort port)
+        private static bool CreateRequestIfURL(string toCheck, out ConnectionRequest request)
         {
-            host = "";
-            port = PortLogic.UnsetPort;
-            var urlMatch = checkIfUrl.Match(toCheck);
-            if (urlMatch.Success)
+            request = new ConnectionRequest();
+            var uriCreated = Uri.TryCreate(toCheck, UriKind.Absolute, out var uri);
+            if (uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
             {
-                host = urlMatch.Groups["host"].Value;
-                if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
-                {
-                    port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
-                    if (port == PortLogic.UnsetPort)
-                    {
-                        port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["port"].Value);
-                    }
-                }
-                else if (port == PortLogic.UnsetPort && !string.IsNullOrEmpty(urlMatch.Groups["protocol"].Value))
-                {
-                    port = PortLogic.DeteminePortByProtocol(urlMatch.Groups["protocol"].Value);
-                }
+                request = new ConnectionRequest("", uri.Port, uri.DnsSafeHost);
                 return true;
             }
+            else
+            {
+                var urlMatch = checkIfUrl.Match(toCheck);
+                if (urlMatch.Success)
+                {
+                    var port = PortLogic.UnsetPort;
+                    if (!string.IsNullOrEmpty(urlMatch.Groups["port"].Value))
+                    {
+                        port = PortLogic.StringToPort(urlMatch.Groups["port"].Value);
+                        if (port == PortLogic.UnsetPort)
+                        {
+                            port = PortLogic.DeterminePortByProtocol(urlMatch.Groups["port"].Value);
+                        }
+                    }
+                    request = new ConnectionRequest("", port, urlMatch.Groups["host"].Value);
+                    return true;
+                }
+            }
             return false;
+        }
+
+        private static string GetLocalPath(string ip, Socket socket)
+        {
+            IPAddress remoteIp = IPAddress.Parse(ip);
+            IPEndPoint remoteEndPoint = new IPEndPoint(remoteIp, 0);
+            IPEndPoint localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
+            return localEndPoint.Address.ToString();
+        }
+
+        private static IPEndPoint QueryRoutingInterface(
+          Socket socket,
+          IPEndPoint remoteEndPoint)
+        {
+            SocketAddress address = remoteEndPoint.Serialize();
+
+            byte[] remoteAddrBytes = new byte[address.Size];
+            for (int i = 0; i < address.Size; i++)
+            {
+                remoteAddrBytes[i] = address[i];
+            }
+
+            byte[] outBytes = new byte[remoteAddrBytes.Length];
+            socket.IOControl(
+                        IOControlCode.RoutingInterfaceQuery,
+                        remoteAddrBytes,
+                        outBytes);
+            for (int i = 0; i < address.Size; i++)
+            {
+                address[i] = outBytes[i];
+            }
+
+            EndPoint ep = remoteEndPoint.Create(address);
+            return (IPEndPoint)ep;
         }
     }
 }
