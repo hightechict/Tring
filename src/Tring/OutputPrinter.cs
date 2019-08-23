@@ -63,7 +63,8 @@ namespace Tring
         }
         public static void SetupCleanUp()
         {
-            Console.CancelKeyPress += delegate {
+            Console.CancelKeyPress += delegate
+            {
                 if (!Console.IsOutputRedirected)
                 {
                     CleanUp();
@@ -140,7 +141,7 @@ namespace Tring
             {
                 case ConnectionTester.ConnectionStatus.Succes:
                 case ConnectionTester.ConnectionStatus.Untried:
-                    ipOrError = request.Request.Ip;
+                    ipOrError = request.Request.Ip.ToString();
                     break;
                 case ConnectionTester.ConnectionStatus.TimeOut:
                     ipOrError = "DNS timeout";

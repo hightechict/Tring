@@ -20,16 +20,16 @@ using Microsoft.Extensions.CommandLineUtils;
 
 namespace Tring
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             var app = new CommandLineApplication
             {
                 Name = "Tring"
             };
             app.HelpOption("-?|-h|--help");
-            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.", multipleValues: true);
+            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.");
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
@@ -38,56 +38,61 @@ namespace Tring
                 switch (arguments.Values.Count)
                 {
                     case 0:
-                        throw new ArgumentException("No arguments provided: please provide a host and a port or protocol");
+                        throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     case 1:
                         connectionTester = new ConnectionTester(arguments.Values[0]);
                         break;
-                    case 2:
-                        connectionTester = new ConnectionTester(arguments.Values[0], arguments.Values[1]);
-                        break;
                     default:
-                        throw new ArgumentException("To many arguments provided: please provide only a host and a port");
+                        throw new ArgumentException("To many arguments provided: please provide only a host:port or host:protocol.");
                 }
-                OutputPrinter.SetupCleanUp();
-                OutputPrinter.PrintTable();
-                var startTime = DateTimeOffset.Now;
-                ConnectionResult result =null;
-                while (true)
-                {
-                    var watch = System.Diagnostics.Stopwatch.StartNew();
-                    var newResult = connectionTester.TryConnect();
-                    if (result?.IsEquivalent(newResult) ?? false)
-                    {
-                        if (!Console.IsOutputRedirected)
-                            Console.CursorTop--;
-                    }
-                    else
-                    {
-                        result = newResult;
-                        startTime = DateTimeOffset.Now;
-                    }
-                    OutputPrinter.ResetPrintLine();
-                    OutputPrinter.PrintLogEntry(startTime, newResult);
-                    if (optionWatch.Value() != "on")
-                        break;
-                    OutputPrinter.HideCursor();
-
-                    if (watch.ElapsedMilliseconds < 1000)
-                    {
-                        System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
-                    }
-                }
-                OutputPrinter.CleanUp();
+                Connect(optionWatch, connectionTester);
                 return 0;
             });
             try
             {
-                app.Execute(args);
+                return app.Execute(args);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine(e.Message);
+                Console.ResetColor();
+                return -1;
             }
+        }
+
+        private static void Connect(CommandOption optionWatch, ConnectionTester connectionTester)
+        {
+            OutputPrinter.SetupCleanUp();
+            OutputPrinter.PrintTable();
+            var startTime = DateTimeOffset.Now;
+            ConnectionResult result = null;
+            while (true)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var newResult = connectionTester.TryConnect();
+                if (result?.IsEquivalent(newResult) ?? false)
+                {
+                    if (!Console.IsOutputRedirected)
+                        Console.CursorTop--;
+                }
+                else
+                {
+                    result = newResult;
+                    startTime = DateTimeOffset.Now;
+                }
+                OutputPrinter.ResetPrintLine();
+                OutputPrinter.PrintLogEntry(startTime, newResult);
+                if (optionWatch.Value() != "on")
+                    break;
+                OutputPrinter.HideCursor();
+
+                if (watch.ElapsedMilliseconds < 1000)
+                {
+                    System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
+                }
+            }
+            OutputPrinter.CleanUp();
         }
     }
 }

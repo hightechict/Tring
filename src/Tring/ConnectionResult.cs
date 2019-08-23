@@ -29,7 +29,7 @@ namespace Tring
             ConnectionStatus ping = ConnectionStatus.Untried,
             string localInterface = "",
             long connectionTime = 0,
-            long pingTime =0
+            long pingTime = 0
             )
         {
             TimeStamp = DateTimeOffset.Now;

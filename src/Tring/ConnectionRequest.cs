@@ -15,18 +15,20 @@
 //You should have received a copy of the GNU Lesser General Public License
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
+using System.Net;
+
 namespace Tring
 {
     class ConnectionRequest
     {
-        public ConnectionRequest(string ip="", int port = PortLogic.UnsetPort, string url = "")
+        public ConnectionRequest(IPAddress ip = null, int port = PortLogic.UnsetPort, string url = "")
         {
             Ip = ip;
             Url = url;
             Port = port;
         }
 
-        public string Ip { get; }
+        public IPAddress Ip { get; }
         public string Url { get; }
         public int Port { get; }
     }
