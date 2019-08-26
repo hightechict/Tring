@@ -36,7 +36,12 @@ namespace Tring
         {
             request = new ConnectionRequest();
             var match = SplitFormat.Match(input);
-            if (match.Success)
+            var uriCreated = Uri.TryCreate(input, UriKind.Absolute, out var uri);
+            if(uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
+            {
+                request = new ConnectionRequest(null, uri.Port, uri.DnsSafeHost);
+            }
+            else if (match.Success)
             {
                 var convertedPort = PortLogic.StringToPort(match.Groups["port"].Value);
                 if (convertedPort == PortLogic.UnsetPort)
@@ -50,15 +55,7 @@ namespace Tring
             }
             else
             {
-                var uriCreated = Uri.TryCreate(input, UriKind.Absolute, out var uri);
-                if (uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
-                {
-                    request = new ConnectionRequest(null, uri.Port, uri.DnsSafeHost);
-                }
-                else
-                {
-                    throw new ArgumentException($"Invalid input: {input} is nether a valid url nor a host:port or host:protocol.");
-                }
+                throw new ArgumentException($"Invalid input: {input} is nether a valid url nor a host:port or host:protocol.");
             }
         }
 
