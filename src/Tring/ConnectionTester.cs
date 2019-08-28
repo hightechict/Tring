@@ -27,7 +27,7 @@ namespace Tring
     internal class ConnectionTester
     {
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
-
+        
         public static readonly Regex SplitFormat = new Regex(@"^(?<host>.*):(?<port>\w+)$");
         public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
         public ConnectionRequest request;
@@ -65,7 +65,7 @@ namespace Tring
             DNS = ConnectionStatus.Untried;
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
-            if (string.IsNullOrEmpty(request.Ip.ToString()))
+            if (request.Ip == null)
             {
                 DNS = DnsLookup(request.Url, out var ip);
                 request = new ConnectionRequest(ip, request.Port, request.Url);
