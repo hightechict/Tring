@@ -177,3 +177,17 @@ steps:
     errorActionPreference: 'continue'
   env:
     SemVer: $(SemVer)
+
+- task: PowerShell@2
+  condition: and(eq(variables.imageName, 'windows-latest'),not(contains(variables['Build.SourceBranch'],'/feature/')),ne(variables['Build.SourceBranchName'], 'merge'))
+  displayName: Pushing NuGet package
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "Publishing NuGet package"
+      pushd built
+      dotnet nuget push *.nupkg --api-key $env:NuGet_APIKEY --no-symbols true --source https://api.nuget.org/v3/index.json
+      popd
+  env:
+    NuGet_APIKEY: $(nuget.APIKEY)
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
