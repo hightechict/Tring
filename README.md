@@ -1,5 +1,6 @@
 # Tring
 
+[![Build Status](https://dev.azure.com/basbossink0470/Tring/_apis/build/status/hightechict.Tring?branchName=develop)](https://dev.azure.com/basbossink0470/Tring/_build/latest?definitionId=2&branchName=develop)
 ![licenceTag](https://img.shields.io/github/license/hightechict/Tring.svg)
 
 Tring can be used to quickly test a TCP connection.
@@ -21,14 +22,12 @@ Adding -w or --watch will keep checking the request every second.
 Accepted input expampels:
 ```bash
 http://google.nl
+http://google.nl:443
+http://google.nl:443/example
 google.nl:http
 google.nl:80
-google.nl 80
-google.nl htpp
 8.8.8.8:80
 8.8.8.8:http
-8.8.8.8 80
-8.8.8.8 http
 ```
 
 Output example:
