@@ -79,7 +79,7 @@ namespace Tring
                 else
                 {
                     result = newResult;
-                    startTime = DateTimeOffset.Now;
+                    startTime = newResult.TimeStamp;
                 }
                 OutputPrinter.ResetPrintLine();
                 OutputPrinter.PrintLogEntry(startTime, newResult);
