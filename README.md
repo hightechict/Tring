@@ -1,6 +1,7 @@
 # Tring
 
 [![Build Status](https://dev.azure.com/basbossink0470/Tring/_apis/build/status/hightechict.Tring?branchName=develop)](https://dev.azure.com/basbossink0470/Tring/_build/latest?definitionId=2&branchName=develop)
+[![nuget](https://img.shields.io/nuget/v/Tring)](https://www.nuget.org/packages/tring/)
 ![licenceTag](https://img.shields.io/github/license/hightechict/Tring.svg)
 
 Tring can be used to quickly test a TCP connection.
