@@ -86,7 +86,10 @@ namespace Tring
                 if (optionWatch.Value() != "on")
                     break;
                 OutputPrinter.HideCursor();
-
+                if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                {
+                    break;
+                }
                 if (watch.ElapsedMilliseconds < 1000)
                 {
                     System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
