@@ -16,6 +16,8 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 
 namespace Tring
@@ -29,23 +31,22 @@ namespace Tring
                 Name = "Tring"
             };
             app.HelpOption("-?|-h|--help");
-            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.");
+            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.",true);
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
-                ConnectionTester connectionTester;
                 switch (arguments.Values.Count)
                 {
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     case 1:
-                        connectionTester = new ConnectionTester(arguments.Values[0]);
+                        SingleConnect(optionWatch.Value() == "on", new ConnectionTester(arguments.Values[0]));
                         break;
                     default:
-                        throw new ArgumentException("To many arguments provided: please provide only a host:port or host:protocol.");
+                        MultiConnect(optionWatch.Value() == "on", arguments.Values);
+                        break;
                 }
-                Connect(optionWatch, connectionTester);
                 return 0;
             });
             try
@@ -61,7 +62,46 @@ namespace Tring
             }
         }
 
-        private static void Connect(CommandOption optionWatch, ConnectionTester connectionTester)
+        internal static async Task<ConnectionResult> Connect(ConnectionTester connectionTester)
+        {
+            return connectionTester.TryConnect();
+        }
+
+        private static async void MultiConnect(bool watchMode, List<string> connections)
+        {
+            var connectors = new List<ConnectionTester>();
+            var results = new ConnectionResult[connections.Count];
+            foreach (string input in connections)
+            {
+                connectors.Add(new ConnectionTester(input));
+            }
+            OutputPrinter.SetupCleanUp();
+            OutputPrinter.PrintTable();
+            while (true)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                for (int i= 0; i< connectors.Count;i++)
+                {
+                    results[i] = await Connect(connectors[i]); 
+                }
+                OutputPrinter.PrintLogEntry(results);
+                if (!watchMode)
+                    break;
+                OutputPrinter.HideCursor();
+                if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                {
+                    break;
+                }
+                OutputPrinter.ResetPrintLine(connectors.Count);
+                if (watch.ElapsedMilliseconds < 1000)
+                {
+                    System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
+                }
+            }
+            OutputPrinter.CleanUp();
+        }
+
+        private static void SingleConnect(bool watchMode, ConnectionTester connectionTester)
         {
             OutputPrinter.SetupCleanUp();
             OutputPrinter.PrintTable();
@@ -83,7 +123,7 @@ namespace Tring
                 }
                 OutputPrinter.ResetPrintLine();
                 OutputPrinter.PrintLogEntry(startTime, newResult);
-                if (optionWatch.Value() != "on")
+                if (!watchMode)
                     break;
                 OutputPrinter.HideCursor();
                 if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)

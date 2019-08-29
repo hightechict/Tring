@@ -16,6 +16,7 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 
 namespace Tring
 {
@@ -34,16 +35,30 @@ namespace Tring
             PrintHostName(status.Request.Url);
         }
 
+        public static void PrintLogEntry(ConnectionResult[] results)
+        {
+            foreach(ConnectionResult connection in results)
+            {
+                PrintTime(connection.TimeStamp, connection.TimeStamp);
+                PrintRequest(connection);
+                PrintResult(connection.Connect, connection.ConnectionTimeMs);
+                PrintPing(connection.PingResult, connection.PingTimeMs);
+                PrintLocalInterface(connection.LocalInterface);
+                PrintProtocol(connection.Request.Port);
+                PrintHostName(connection.Request.Url);
+            }
+        }
+
         public static void PrintTable()
         {
-            Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname  ");
+            Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname");
             // example output  | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
         }
 
-        public static void ResetPrintLine()
+        public static void ResetPrintLine(int lines = 0)
         {
             if (!Console.IsOutputRedirected)
-                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.SetCursorPosition(0, Console.CursorTop - lines);
         }
 
         public static void HideCursor()
