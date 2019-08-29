@@ -21,6 +21,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Tring
 {
@@ -59,7 +60,7 @@ namespace Tring
             }
         }
 
-        public ConnectionResult TryConnect()
+        public async Task<ConnectionResult> TryConnect()
         {
             ConnectionStatus Connection, DNS;
             DNS = ConnectionStatus.Untried;

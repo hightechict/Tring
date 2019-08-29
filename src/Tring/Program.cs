@@ -34,7 +34,7 @@ namespace Tring
             var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.",true);
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
 
-            app.OnExecute(() =>
+            app.OnExecute(async () =>
             {
                 switch (arguments.Values.Count)
                 {
@@ -44,7 +44,7 @@ namespace Tring
                         SingleConnect(optionWatch.Value() == "on", new ConnectionTester(arguments.Values[0]));
                         break;
                     default:
-                        MultiConnect(optionWatch.Value() == "on", arguments.Values);
+                        await MultiConnect(optionWatch.Value() == "on", arguments.Values);
                         break;
                 }
                 return 0;
@@ -64,10 +64,10 @@ namespace Tring
 
         internal static async Task<ConnectionResult> Connect(ConnectionTester connectionTester)
         {
-            return connectionTester.TryConnect();
+            return await connectionTester.TryConnect();
         }
 
-        private static async void MultiConnect(bool watchMode, List<string> connections)
+        private static async Task MultiConnect(bool watchMode, List<string> connections)
         {
             var connectors = new List<ConnectionTester>();
             var results = new ConnectionResult[connections.Count];
@@ -88,7 +88,7 @@ namespace Tring
                 if (!watchMode)
                     break;
                 OutputPrinter.HideCursor();
-                if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                if (ExitAplication)
                 {
                     break;
                 }
@@ -110,7 +110,7 @@ namespace Tring
             while (true)
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                var newResult = connectionTester.TryConnect();
+                var newResult = connectionTester.TryConnect().Result;
                 if (result?.IsEquivalent(newResult) ?? false)
                 {
                     if (!Console.IsOutputRedirected)
@@ -126,7 +126,7 @@ namespace Tring
                 if (!watchMode)
                     break;
                 OutputPrinter.HideCursor();
-                if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                if (ExitAplication)
                 {
                     break;
                 }
@@ -137,5 +137,7 @@ namespace Tring
             }
             OutputPrinter.CleanUp();
         }
+
+        private static bool ExitAplication => Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape;
     }
 }

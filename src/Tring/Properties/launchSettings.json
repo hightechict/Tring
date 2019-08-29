@@ -2,7 +2,7 @@
   "profiles": {
     "Tring": {
       "commandName": "Project",
-      "commandLineArgs": "http://www.google.nl google.nl:80 google.nl:https -w"
+      "commandLineArgs": "google.nl:20 google.nl:21 google.nl:22 google.nl:23 google.nl:24 -w"
     }
   }
 }
