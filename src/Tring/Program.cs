@@ -31,6 +31,7 @@ namespace Tring
             app.HelpOption("-?|-h|--help");
             var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.");
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
+            var optionIPv6 = app.Option("-6|--ipv6", "Set the program to use IPv6 with", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
@@ -40,7 +41,7 @@ namespace Tring
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     case 1:
-                        connectionTester = new ConnectionTester(arguments.Values[0]);
+                        connectionTester = new ConnectionTester(arguments.Values[0],optionIPv6.Value() == "on");
                         break;
                     default:
                         throw new ArgumentException("To many arguments provided: please provide only a host:port or host:protocol.");

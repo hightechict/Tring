@@ -27,13 +27,15 @@ namespace Tring
     internal class ConnectionTester
     {
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
+        private bool IPv6Mode;
         
         public static readonly Regex SplitFormat = new Regex(@"^(?<host>.*):(?<port>\w+)$");
         public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
         public ConnectionRequest request;
 
-        public ConnectionTester(string input)
+        public ConnectionTester(string input,bool IPv6Mode)
         {
+            this.IPv6Mode = IPv6Mode;
             request = new ConnectionRequest();
             var match = SplitFormat.Match(input);
             var uriCreated = Uri.TryCreate(input, UriKind.Absolute, out var uri);
@@ -63,7 +65,14 @@ namespace Tring
         {
             ConnectionStatus Connection, DNS;
             DNS = ConnectionStatus.Untried;
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket;
+            if (IsIPv6)
+            {
+                socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+            }
+            else
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
             if (request.Ip == null)
             {
@@ -74,8 +83,8 @@ namespace Tring
             }
             var watch = System.Diagnostics.Stopwatch.StartNew();
             result = socket.BeginConnect(request.Ip, request.Port, null, null);
-            bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
-            var localInterface = GetLocalPath(request.Ip, socket);
+            var connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
+            var localInterface = GetLocalPath(request.Ip, socket); 
             if (socket.Connected)
             {
                 watch.Stop();
@@ -99,7 +108,15 @@ namespace Tring
         {
             using (var ping = new Ping())
             {
-                var reply = ping.Send(ip);
+                PingReply reply;
+                try
+                {
+                    reply = ping.Send(ip);
+                }
+                catch(Exception)
+                {
+                    return (ConnectionStatus.Refused, 0);
+                }
                 return (reply?.Status == IPStatus.Success ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, reply?.RoundtripTime ?? long.MinValue);
             }
         }
@@ -113,7 +130,16 @@ namespace Tring
             {
                 try
                 {
-                    ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetwork);
+                    if(IPv6Mode)
+                    {
+                        ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetworkV6);
+                        if (ip == null)
+                            throw new ArgumentException($"No IPv6 address was found for {host}.");
+                    }
+                    else
+                    {
+                        ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetwork);
+                    }
                     return ConnectionStatus.Succes;
                 }
                 catch (Exception)
@@ -127,15 +153,26 @@ namespace Tring
             }
         }
 
-        private static string GetLocalPath(IPAddress ip, Socket socket)
+        private string GetLocalPathIPv6()
         {
+            string strHostName = Dns.GetHostName(); ;
+            IPHostEntry ipEntry = Dns.GetHostEntry(strHostName);
+            IPAddress[] addr = ipEntry.AddressList;
+          return addr[0].ToString();
+        }
+
+        private string GetLocalPath(IPAddress ip, Socket socket)
+        {
+            if(IsIPv6)
+                return GetLocalPathIPv6();
+
             IPAddress remoteIp = ip;
             IPEndPoint remoteEndPoint = new IPEndPoint(remoteIp, 0);
             IPEndPoint localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
             return localEndPoint.Address.ToString();
         }
 
-        private static IPEndPoint QueryRoutingInterface(
+        private  IPEndPoint QueryRoutingInterface(
           Socket socket,
           IPEndPoint remoteEndPoint)
         {
@@ -156,9 +193,10 @@ namespace Tring
             {
                 address[i] = outBytes[i];
             }
-
             EndPoint ep = remoteEndPoint.Create(address);
             return (IPEndPoint)ep;
         }
+
+        private bool IsIPv6 => IPv6Mode || request.Ip.AddressFamily == AddressFamily.InterNetworkV6;
     }
 }
