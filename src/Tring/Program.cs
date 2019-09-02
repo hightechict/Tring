@@ -44,7 +44,7 @@ namespace Tring
                         SingleConnect(optionWatch.Value() == "on", new ConnectionTester(arguments.Values[0]));
                         break;
                     default:
-                        await MultiConnect(optionWatch.Value() == "on", arguments.Values);
+                        MultiConnect(optionWatch.Value() == "on", arguments.Values);
                         break;
                 }
                 return 0;
@@ -67,7 +67,7 @@ namespace Tring
             return await connectionTester.TryConnect();
         }
 
-        private static async Task MultiConnect(bool watchMode, List<string> connections)
+        private static Task MultiConnect(bool watchMode, List<string> connections)
         {
             var connectors = new List<ConnectionTester>();
             var results = new ConnectionResult[connections.Count];
@@ -80,10 +80,10 @@ namespace Tring
             while (true)
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                for (int i= 0; i< connectors.Count;i++)
+                Parallel.For(0, connectors.Count, async (i) =>
                 {
-                    results[i] = await Connect(connectors[i]); 
-                }
+                    results[i] = await Connect(connectors[i]);
+                });
                 OutputPrinter.PrintLogEntry(results);
                 if (!watchMode)
                     break;
@@ -99,6 +99,7 @@ namespace Tring
                 }
             }
             OutputPrinter.CleanUp();
+            return null;
         }
 
         private static void SingleConnect(bool watchMode, ConnectionTester connectionTester)
