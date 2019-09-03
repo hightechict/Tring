@@ -29,7 +29,7 @@ namespace Tring.Common
         private static readonly int startLine = Console.CursorTop;
         private const int extraSpacing = 2;
 
-        static int Main(string[] args)
+        public static int Main(string[] args)
         {
             var app = new CommandLineApplication
             {

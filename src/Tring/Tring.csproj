@@ -1,0 +1,42 @@
+﻿<!--
+Copyright 2019 Hightech ICT and authors
+
+This file is part of Tring.
+
+Tring is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Tring is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Tring. If not, see<https://www.gnu.org/licenses/>.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Title>Tring</Title>
+    <Description>Tring can be used to quickly test a TCP connection.</Description>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/hightechict/Tring</RepositoryUrl>
+	<PackageProjectUrl>https://github.com/hightechict/Tring</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright 2019 Hightech ICT</Copyright>
+    <Authors>Hightech ICT and authors</Authors>
+    <PackageIconUrl>https://raw.githubusercontent.com/hightechict/DashDashVersion/develop/doc/images/HightechICT.png</PackageIconUrl>
+    <PackageTags>TCP;Network</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Tring.Common/Tring.Common.csproj" />
+  </ItemGroup>
+
+</Project>
