@@ -16,7 +16,6 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 
 namespace Tring
 {
@@ -35,17 +34,17 @@ namespace Tring
             PrintHostName(status.Request.Url);
         }
 
-        public static void PrintLogEntry(ConnectionResult[] results)
+        public static void PrintLogEntry(ConnectionResult[] oldResults, ConnectionResult[] currentResults)
         {
-            foreach(ConnectionResult connection in results)
+            for(int i= 0; i< currentResults.Length; i++)
             {
-                PrintTime(connection.TimeStamp, connection.TimeStamp);
-                PrintRequest(connection);
-                PrintResult(connection.Connect, connection.ConnectionTimeMs);
-                PrintPing(connection.PingResult, connection.PingTimeMs);
-                PrintLocalInterface(connection.LocalInterface);
-                PrintProtocol(connection.Request.Port);
-                PrintHostName(connection.Request.Url);
+                PrintTime(oldResults[i].TimeStamp, currentResults[i].TimeStamp);
+                PrintRequest(currentResults[i]);
+                PrintResult(currentResults[i].Connect, currentResults[i].ConnectionTimeMs);
+                PrintPing(currentResults[i].PingResult, currentResults[i].PingTimeMs);
+                PrintLocalInterface(currentResults[i].LocalInterface);
+                PrintProtocol(currentResults[i].Request.Port);
+                PrintHostName(currentResults[i].Request.Url);
             }
         }
 
