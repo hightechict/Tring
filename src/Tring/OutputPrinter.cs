@@ -38,13 +38,7 @@ namespace Tring
         {
             for(int i= 0; i< currentResults.Length; i++)
             {
-                PrintTime(oldResults[i].TimeStamp, currentResults[i].TimeStamp);
-                PrintRequest(currentResults[i]);
-                PrintResult(currentResults[i].Connect, currentResults[i].ConnectionTimeMs);
-                PrintPing(currentResults[i].PingResult, currentResults[i].PingTimeMs);
-                PrintLocalInterface(currentResults[i].LocalInterface);
-                PrintProtocol(currentResults[i].Request.Port);
-                PrintHostName(currentResults[i].Request.Url);
+                PrintLogEntry(oldResults[i].TimeStamp, currentResults[i]);
             }
         }
 

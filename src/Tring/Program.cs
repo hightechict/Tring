@@ -40,11 +40,8 @@ namespace Tring
                 {
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
-                    case 1:
-                        SingleConnect(optionWatch.Value() == "on", new ConnectionTester(arguments.Values[0]));
-                        break;
                     default:
-                        await MultiConnect(optionWatch.Value() == "on", arguments.Values);
+                        await Connect(optionWatch.Value() == "on", arguments.Values);
                         break;
                 }
                 return 0;
@@ -62,12 +59,7 @@ namespace Tring
             }
         }
 
-        internal static async Task<ConnectionResult> Connect(ConnectionTester connectionTester)
-        {
-            return await connectionTester.TryConnect();
-        }
-
-        private static Task MultiConnect(bool watchMode, List<string> connections)
+        private static Task Connect(bool watchMode, List<string> connections)
         {
             var connectors = new List<ConnectionTester>();
             var currentResults = new ConnectionResult[connections.Count];
@@ -83,10 +75,18 @@ namespace Tring
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 Parallel.For(0, connectors.Count, async (i) =>
                 {
-                    currentResults[i] = await Connect(connectors[i]);
-                    if(oldResults[i] == null || !oldResults[i].IsEquivalent(currentResults[i]))
+                    currentResults[i] = await connectors[i].TryConnect();
+                    if (oldResults[i] == null)
                     {
                         oldResults[i] = currentResults[i];
+                    }
+                    else if (!oldResults[i].IsEquivalent(currentResults[i]))
+                    {
+                        oldResults[i] = currentResults[i];
+                        if(connections.Count == 1)
+                        {
+                            OutputPrinter.ResetPrintLine(-1);
+                        }
                     }
                 });
                 OutputPrinter.PrintLogEntry(oldResults,currentResults);
@@ -105,43 +105,6 @@ namespace Tring
             }
             OutputPrinter.CleanUp();
             return null;
-        }
-
-        private static void SingleConnect(bool watchMode, ConnectionTester connectionTester)
-        {
-            OutputPrinter.SetupCleanUp();
-            OutputPrinter.PrintTable();
-            var startTime = DateTimeOffset.Now;
-            ConnectionResult result = null;
-            while (true)
-            {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                var newResult = connectionTester.TryConnect().Result;
-                if (result?.IsEquivalent(newResult) ?? false)
-                {
-                    if (!Console.IsOutputRedirected)
-                        Console.CursorTop--;
-                }
-                else
-                {
-                    result = newResult;
-                    startTime = newResult.TimeStamp;
-                }
-                OutputPrinter.ResetPrintLine();
-                OutputPrinter.PrintLogEntry(startTime, newResult);
-                if (!watchMode)
-                    break;
-                OutputPrinter.HideCursor();
-                if (ExitAplication)
-                {
-                    break;
-                }
-                if (watch.ElapsedMilliseconds < 1000)
-                {
-                    System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
-                }
-            }
-            OutputPrinter.CleanUp();
         }
 
         private static bool ExitAplication => Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape;
