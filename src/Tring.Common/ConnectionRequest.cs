@@ -20,7 +20,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
-namespace Tring
+namespace Tring.Common
 {
     class ConnectionRequest
     {
