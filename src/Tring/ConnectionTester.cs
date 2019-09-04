@@ -62,7 +62,7 @@ namespace Tring
             }
         }
 
-        public async Task<ConnectionResult> TryConnect()
+        public ConnectionResult TryConnect()
         {
             ConnectionStatus Connection, DNS;
             DNS = ConnectionStatus.Untried;

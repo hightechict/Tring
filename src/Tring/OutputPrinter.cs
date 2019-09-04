@@ -16,86 +16,95 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
+using System.Threading;
 
 namespace Tring
 {
     internal class OutputPrinter
     {
         private const string timeFormat = "HH:mm:ss";
+        private object _lockObject;
+        private int _lenghtIP, _lenghtPort;
+        private const int _minimumLengthIP = 15;
+        private const int _minimumLengthPort = 4;
 
-        public static void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status)
+        public OutputPrinter(int lenghtIP, int lenghtPort)
         {
-            PrintTime(startTime, status.TimeStamp);
-            PrintRequest(status);
-            PrintResult(status.Connect, status.ConnectionTimeMs);
-            PrintPing(status.PingResult, status.PingTimeMs);
-            PrintLocalInterface(status.LocalInterface);
-            PrintProtocol(status.Request.Port);
-            PrintHostName(status.Request.Url);
+            _lockObject = new object();
+            _lenghtIP = lenghtIP >= _minimumLengthIP ? lenghtIP : _minimumLengthIP;
+            _lenghtPort = lenghtPort >= _minimumLengthPort ? lenghtPort : _minimumLengthPort;
         }
 
-        public static void PrintLogEntry(ConnectionResult[] oldResults, ConnectionResult[] currentResults)
+        public void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status, int index)
         {
-            for(int i= 0; i< currentResults.Length; i++)
+            lock (_lockObject)
             {
-                PrintLogEntry(oldResults[i].TimeStamp, currentResults[i]);
+                SetPrintLine(index);
+                PrintTime(startTime, status.TimeStamp);
+                PrintRequest(status);
+                PrintResult(status.Connect, status.ConnectionTimeMs);
+                PrintPing(status.PingResult, status.PingTimeMs);
+                PrintLocalInterface(status.LocalInterface);
+                PrintProtocol(status.Request.Port);
+                PrintHostName(status.Request.Url); 
             }
         }
 
-        public static void PrintTable()
+        public void PrintTable()
         {
-            Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname");
-            // example output  | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
+            Console.WriteLine(" | Time              | "+ "IP".PadRight(_lenghtIP)+ " | "+"Port".PadRight(_lenghtPort)+" | Connect | Ping    | "+"Egress".PadRight(_lenghtIP)+" | Protocol | Hostname");
+            // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
         }
 
-        public static void ResetPrintLine(int lines = 0)
+        public static void SetPrintLine(int lines = 0)
         {
             if (!Console.IsOutputRedirected)
-                Console.SetCursorPosition(0, Console.CursorTop - lines);
+                Console.SetCursorPosition(0, lines);
         }
 
-        public static void HideCursor()
+        public  void HideCursor()
         {
             if (!Console.IsOutputRedirected)
                 Console.CursorVisible = false;
         }
 
-        public static void CleanUp()
+        public static void CleanUp(int endLine)
         {
             if (!Console.IsOutputRedirected)
             {
                 Console.CursorVisible = true;
                 Console.ResetColor();
-                Console.CursorTop++;
+                if (Console.CursorTop <= endLine)
+                    SetPrintLine(endLine+1);
+                else
+                    Console.CursorTop++;
             }
         }
-        public static void SetupCleanUp()
+        public void SetupCleanUp(CancellationTokenSource sourceToken, int endLine)
         {
             Console.CancelKeyPress += delegate
             {
-                if (!Console.IsOutputRedirected)
-                {
-                    CleanUp();
-                }
+                sourceToken.Cancel();
+                CleanUp(endLine);
             };
         }
-        private static void PrintProtocol(int port)
+        private void PrintProtocol(int port)
         {
             Console.Write($"{PortLogic.DetermineProtocolByPort(port).PadRight(8)} | ");
         }
-        private static void PrintHostName(string url)
+        private void PrintHostName(string url)
         {
             Console.ResetColor();
             Console.WriteLine(url);
         }
 
-        private static void PrintLocalInterface(string localInterface)
+        private void PrintLocalInterface(string localInterface)
         {
             Console.ResetColor();
-            Console.Write($"{localInterface.PadRight(15)} | ");
+            Console.Write($"{localInterface.PadRight(_lenghtIP)} | ");
         }
 
-        private static void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
+        private void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
         {
             var result = "";
             switch (pingResult)
@@ -119,7 +128,7 @@ namespace Tring
             Console.Write(" | ");
         }
 
-        private static void PrintResult(ConnectionTester.ConnectionStatus connect, long responseTimeMS)
+        private void PrintResult(ConnectionTester.ConnectionStatus connect, long responseTimeMS)
         {
             var result = "";
             switch (connect)
@@ -142,7 +151,7 @@ namespace Tring
             Console.Write(" | ");
         }
 
-        private static void PrintRequest(ConnectionResult request)
+        private void PrintRequest(ConnectionResult request)
         {
             var ipOrError = "";
             switch (request.DnsResult)
@@ -160,12 +169,12 @@ namespace Tring
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Write($"{ipOrError.PadRight(15)}");
+            Console.Write($"{ipOrError.PadRight(_lenghtIP)}");
             Console.ResetColor();
-            Console.Write($" | {request.Request.Port.ToString().PadRight(5)} | ");
+            Console.Write($" | {request.Request.Port.ToString().PadRight(_lenghtPort)} | ");
         }
 
-        private static void PrintTime(DateTimeOffset startTime, DateTimeOffset currentTime)
+        private void PrintTime(DateTimeOffset startTime, DateTimeOffset currentTime)
         {
             var toPrint = $"{startTime.ToString(timeFormat)}";
             if (startTime.ToString(timeFormat) != currentTime.ToString(timeFormat))
@@ -173,7 +182,7 @@ namespace Tring
                 toPrint += $"-{currentTime.ToString(timeFormat)}";
             }
             Console.ResetColor();
-            Console.Write($"| {toPrint.PadRight(17)} | ");
+            Console.Write($" | {toPrint.PadRight(17)} | ");
         }
     }
 }

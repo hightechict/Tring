@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 
@@ -31,7 +33,7 @@ namespace Tring
                 Name = "Tring"
             };
             app.HelpOption("-?|-h|--help");
-            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.",true);
+            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.", true);
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
 
             app.OnExecute(async () =>
@@ -41,7 +43,8 @@ namespace Tring
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     default:
-                        await Connect(optionWatch.Value() == "on", arguments.Values);
+                        await SetupConnections(optionWatch.Value() == "on", arguments.Values);
+                        OutputPrinter.CleanUp(arguments.Values.Count);
                         break;
                 }
                 return 0;
@@ -50,63 +53,104 @@ namespace Tring
             {
                 return app.Execute(args);
             }
-            catch (Exception e)
+            catch (AggregateException exception)
+            {
+                var errors = exception.InnerExceptions.Where(e => !(e is TaskCanceledException));
+                foreach(var e in errors)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Error.WriteLine(e.Message);
+                    Console.ResetColor();
+                }
+                return errors.Any() ? -1 : 0; 
+            }
+            catch (Exception exception) when (!(exception is TaskCanceledException))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine(e.Message);
+                Console.Error.WriteLine(exception.Message);
                 Console.ResetColor();
                 return -1;
             }
         }
 
-        private static Task Connect(bool watchMode, List<string> connections)
+        private static Task SetupConnections(bool watchMode, List<string> connections)
         {
+            var tasks = new List<Task>();
             var connectors = new List<ConnectionTester>();
-            var currentResults = new ConnectionResult[connections.Count];
-            var oldResults = new ConnectionResult[connections.Count];
             foreach (string input in connections)
             {
                 connectors.Add(new ConnectionTester(input));
             }
-            OutputPrinter.SetupCleanUp();
-            OutputPrinter.PrintTable();
-            while (true)
+            var ipSize = connectors.Select(connection => connection.request.Ip).Max(ip => ip?.ToString()?.Length) ?? 15;
+            var portSize = connectors.Select(connection => connection.request.Port).Max(port => port.ToString().Length);
+            var printer = new OutputPrinter(ipSize, portSize);
+            var cancelationSource = new CancellationTokenSource();
+            var cancelationToken = cancelationSource.Token;
+            printer.SetupCleanUp(cancelationSource, Console.CursorTop + connectors.Count);
+            if(watchMode)
+                tasks.Add(CheckIfEscPress(cancelationSource, Console.CursorTop + connectors.Count));
+            printer.PrintTable();
+            printer.HideCursor();
+            for (int index = 0; index < connectors.Count; index++)
             {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                Parallel.For(0, connectors.Count, async (i) =>
-                {
-                    currentResults[i] = await connectors[i].TryConnect();
-                    if (oldResults[i] == null)
-                    {
-                        oldResults[i] = currentResults[i];
-                    }
-                    else if (!oldResults[i].IsEquivalent(currentResults[i]))
-                    {
-                        oldResults[i] = currentResults[i];
-                        if(connections.Count == 1)
-                        {
-                            OutputPrinter.ResetPrintLine(-1);
-                        }
-                    }
-                });
-                OutputPrinter.PrintLogEntry(oldResults,currentResults);
-                if (!watchMode)
-                    break;
-                OutputPrinter.HideCursor();
-                if (ExitAplication)
-                {
-                    break;
-                }
-                OutputPrinter.ResetPrintLine(connectors.Count);
-                if (watch.ElapsedMilliseconds < 1000)
-                {
-                    System.Threading.Thread.Sleep(1000 - (int)watch.ElapsedMilliseconds);
-                }
+                tasks.Add(
+                    Connect(
+                        watchMode,
+                        watchMode && connectors.Count == 1,
+                        connectors[index],
+                        Console.CursorTop + index,
+                        printer,
+                        cancelationToken
+                    ));
             }
-            OutputPrinter.CleanUp();
-            return null;
+            return Task.WhenAll(tasks);
         }
 
-        private static bool ExitAplication => Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape;
+        private static async Task Connect(bool watchMode, bool addLineOnChange, ConnectionTester connection, int index, OutputPrinter printer, CancellationToken cancelationToken)
+        {
+            await Task.Run(async () =>
+            {
+                ConnectionResult oldResult = null;
+                while (!cancelationToken.IsCancellationRequested)
+                {
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var result = connection.TryConnect();
+                    if (oldResult == null)
+                        oldResult = result;
+                    if (!oldResult.IsEquivalent(result))
+                    {
+                        oldResult = result;
+                        if (addLineOnChange)
+                            index++;
+                    }
+                    printer.PrintLogEntry(oldResult.TimeStamp, result, index);
+                    if (!watchMode)
+                        break;
+
+                    if (watch.ElapsedMilliseconds < 1000)
+                    {
+                        await Task.Delay(1000 - (int)watch.ElapsedMilliseconds, cancelationToken);
+                    }
+
+                }
+            });
+        }
+        private static async Task CheckIfEscPress(CancellationTokenSource tokenSource, int endLine)
+        {
+            await Task.Run(() =>
+            {
+                do
+                {
+                    if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                    {
+                        tokenSource.Cancel();
+                    }
+                    else
+                    {
+                        Task.Delay(200, tokenSource.Token);
+                    }
+                } while (!tokenSource.Token.IsCancellationRequested);
+            });
+        }
     }
 }
