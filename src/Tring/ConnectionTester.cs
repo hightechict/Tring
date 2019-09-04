@@ -153,22 +153,22 @@ namespace Tring
             }
         }
 
-        private string GetLocalPathIPv6()
-        {
-            string strHostName = Dns.GetHostName(); ;
-            IPHostEntry ipEntry = Dns.GetHostEntry(strHostName);
-            IPAddress[] addr = ipEntry.AddressList;
-          return addr[0].ToString();
-        }
-
         private string GetLocalPath(IPAddress ip, Socket socket)
         {
-            if(IsIPv6)
-                return GetLocalPathIPv6();
-
+            IPEndPoint localEndPoint;
             IPAddress remoteIp = ip;
             IPEndPoint remoteEndPoint = new IPEndPoint(remoteIp, 0);
-            IPEndPoint localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
+            try
+            {
+                localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
+            }
+            catch(Exception)
+            {
+                if (IsIPv6)
+                    throw new NotSupportedException("A error occured while trying to determine the local end point, the network or provider most likely does not support IPv6.");
+                else
+                    throw new InvalidOperationException("A error occured while trying to determine the local end point.");
+            }
             return localEndPoint.Address.ToString();
         }
 

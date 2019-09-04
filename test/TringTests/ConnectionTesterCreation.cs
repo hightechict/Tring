@@ -32,7 +32,7 @@ namespace TringTests
         [InlineData("http://google.nl:80/test")]
         public void CreateConnectionTesterURL(string host)
         {
-            var tester = new ConnectionTester(host);
+            var tester = new ConnectionTester(host,false);
             tester.request.Url.Should().Be("google.nl");
             tester.request.Port.Should().Be(80);
         }
@@ -41,7 +41,7 @@ namespace TringTests
         [InlineData("google.nl:http")]
         public void CreateConnectionTesterPartialURL(string host)
         {
-            var tester = new ConnectionTester(host);
+            var tester = new ConnectionTester(host, false);
             tester.request.Url.Should().Be("google.nl");
             tester.request.Port.Should().Be(80);
         }
@@ -51,7 +51,7 @@ namespace TringTests
         [InlineData("1.1.1.1:http")]
         public void CreateConnectionTesterIP(string host)
         {
-            var tester = new ConnectionTester(host);
+            var tester = new ConnectionTester(host, false);
             tester.request.Ip.Should().Be(IPAddress.Parse("1.1.1.1"));
             tester.request.Port.Should().Be(80);
         }
@@ -64,7 +64,7 @@ namespace TringTests
         {
             Action action = () =>
             {
-                _ = new ConnectionTester(host);
+                _ = new ConnectionTester(host, false);
             };
             action.Should().Throw<Exception>();
         }
