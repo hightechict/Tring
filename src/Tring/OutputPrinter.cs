@@ -38,7 +38,7 @@ namespace Tring
         {
             Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname  ");
             // example output  | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
-            // IPv6            | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com 
+            // IPv6            | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
         }
 
         public static void ResetPrintLine()

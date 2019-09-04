@@ -53,7 +53,11 @@ namespace Tring
                 else
                     request = new ConnectionRequest(ip, convertedPort);
 
-                if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue) throw new ArgumentException($"The input you provided for the port is not valid, your input: {request.Port}.");
+                if (IPv6Mode && request.Ip.AddressFamily != AddressFamily.InterNetworkV6)
+                    throw new InvalidOperationException($"IPv6 mode is active but the ip provided is not IPv6: '{request.Ip.ToString()}'");
+
+                if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue)
+                    throw new ArgumentException($"The input you provided for the port is not valid, your input: {request.Port}.");
             }
             else
             {
@@ -197,6 +201,6 @@ namespace Tring
             return (IPEndPoint)ep;
         }
 
-        private bool IsIPv6 => IPv6Mode || request.Ip.AddressFamily == AddressFamily.InterNetworkV6;
+        public bool IsIPv6 => IPv6Mode || request.Ip.AddressFamily == AddressFamily.InterNetworkV6;
     }
 }
