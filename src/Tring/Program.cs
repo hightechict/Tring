@@ -26,6 +26,9 @@ namespace Tring
 {
     public class Program
     {
+        private static readonly int startLine = Console.CursorTop;
+        private const int extraSpacing = 2;
+
         static int Main(string[] args)
         {
             var app = new CommandLineApplication
@@ -44,8 +47,9 @@ namespace Tring
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     default:
-                        await SetupConnections(optionWatch.Value() == "on", optionIPv6.Value() == "on", arguments.Values);
-                        OutputPrinter.CleanUp(arguments.Values.Count);
+                        var cancelationSource = new CancellationTokenSource();
+                        await SetupConnections(optionWatch.Value() == "on", optionIPv6.Value() == "on", arguments.Values, cancelationSource);
+                        FinalCleanup(cancelationSource, startLine + arguments.Values.Count + extraSpacing);
                         break;
                 }
                 return 0;
@@ -74,7 +78,7 @@ namespace Tring
             }
         }
 
-        private static Task SetupConnections(bool watchMode, bool IPv6Mode, List<string> connections)
+        private static Task SetupConnections(bool watchMode, bool IPv6Mode, List<string> connections, CancellationTokenSource cancelationSource)
         {
             var tasks = new List<Task>();
             var connectors = new List<ConnectionTester>();
@@ -83,9 +87,8 @@ namespace Tring
                 connectors.Add(new ConnectionTester(input, IPv6Mode));
             }
             var printer = new OutputPrinter(connectors);
-            var cancelationSource = new CancellationTokenSource();
             var cancelationToken = cancelationSource.Token;
-            printer.SetupCleanUp(cancelationSource, Console.CursorTop + connectors.Count);
+            SetupCleanUp(cancelationSource, startLine + connectors.Count + extraSpacing);
             if(watchMode)
                 tasks.Add(CheckIfEscPress(cancelationSource, Console.CursorTop + connectors.Count));
             printer.PrintTable();
@@ -140,7 +143,7 @@ namespace Tring
             {
                 do
                 {
-                    if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
                     {
                         tokenSource.Cancel();
                     }
@@ -150,6 +153,20 @@ namespace Tring
                     }
                 } while (!tokenSource.Token.IsCancellationRequested);
             });
+        }
+
+        private static void SetupCleanUp(CancellationTokenSource sourceToken, int endLine)
+        {
+            Console.CancelKeyPress += delegate
+            {
+                FinalCleanup(sourceToken, endLine);
+            };
+        }
+        private static void FinalCleanup(CancellationTokenSource sourceToken, int endLine)
+        {
+            sourceToken.Cancel();
+            OutputPrinter.CleanUp(endLine);
+            sourceToken.Dispose();
         }
     }
 }

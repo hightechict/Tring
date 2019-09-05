@@ -25,8 +25,8 @@ namespace Tring
     internal class OutputPrinter
     {
         private const string timeFormat = "HH:mm:ss";
-        private object _lockObject;
-        private int _lenghtIP, _lenghtPort;
+        private readonly object _lockObject;
+        private readonly int _lenghtHostIP, _lenghtEgressIP, _lenghtPort;
         private const int _maximumLengthIPv4 = 15;
         private const int _maximumLengthIPv6 = 39;
         private const int _minimumLengthPort = 4;
@@ -36,15 +36,17 @@ namespace Tring
             _lockObject = new object();
             var lenghtPort = ConnectionRequests.Select(connection => connection.request.Port).Max(port => port.ToString().Length);
             _lenghtPort = lenghtPort >= _minimumLengthPort ? lenghtPort : _minimumLengthPort;
-            _lenghtIP = ConnectionRequests.Select(connection => connection.request.Ip).Max(ip => ip?.ToString()?.Length) ?? 0;
+            _lenghtHostIP = ConnectionRequests.Select(connection => connection.request.Ip).Max(ip => ip?.ToString()?.Length) ?? 0;
 
-            var hasURL = ConnectionRequests.Any(tester => string.IsNullOrEmpty(tester.request.Url));
-            var isIPv6On = ConnectionRequests.Any(tester => tester.IsIPv6 && string.IsNullOrEmpty(tester.request.Url));
+            var hasURL = ConnectionRequests.Any(tester => !string.IsNullOrEmpty(tester.request.Url));
+            var isIPv6On = ConnectionRequests.Any(tester => tester.IsIPv6 && !string.IsNullOrEmpty(tester.request.Url));
 
             if (isIPv6On)
-                _lenghtIP = _maximumLengthIPv6;
-            else if (hasURL && _lenghtIP < _maximumLengthIPv4)
-                _lenghtIP = _maximumLengthIPv4;
+                _lenghtHostIP = _maximumLengthIPv6;
+            else if (hasURL && _lenghtHostIP < _maximumLengthIPv4)
+                _lenghtHostIP = _maximumLengthIPv4;
+
+            _lenghtEgressIP = _lenghtHostIP > _maximumLengthIPv4 ? _maximumLengthIPv6 : _maximumLengthIPv4;
         }
 
         public void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status, int index)
@@ -64,7 +66,7 @@ namespace Tring
 
         public void PrintTable()
         {
-            Console.WriteLine(" | Time              | "+ "IP".PadRight(_lenghtIP)+ " | "+"Port".PadRight(_lenghtPort)+" | Connect | Ping    | "+"Egress".PadRight(_lenghtIP)+" | Protocol | Hostname");
+            Console.WriteLine(" | Time              | "+ "IP".PadRight(_lenghtHostIP)+ " | "+"Port".PadRight(_lenghtPort)+" | Connect | Ping    | "+"Egress".PadRight(_lenghtEgressIP)+" | Protocol | Hostname");
             // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
             // IPv6             | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
         }
@@ -75,7 +77,7 @@ namespace Tring
                 Console.SetCursorPosition(0, lines);
         }
 
-        public  void HideCursor()
+        public void HideCursor()
         {
             if (!Console.IsOutputRedirected)
                 Console.CursorVisible = false;
@@ -88,19 +90,10 @@ namespace Tring
                 Console.CursorVisible = true;
                 Console.ResetColor();
                 if (Console.CursorTop <= endLine)
-                    SetPrintLine(endLine+1);
+                    SetPrintLine(endLine);
                 else
                     Console.CursorTop++;
             }
-        }
-        public void SetupCleanUp(CancellationTokenSource sourceToken, int endLine)
-        {
-            Console.CancelKeyPress += delegate
-            {
-                sourceToken.Cancel();
-                CleanUp(endLine);
-                sourceToken.Dispose();
-            };
         }
         private void PrintProtocol(int port)
         {
@@ -115,7 +108,7 @@ namespace Tring
         private void PrintLocalInterface(string localInterface)
         {
             Console.ResetColor();
-            Console.Write($"{localInterface.PadRight(_lenghtIP)} | ");
+            Console.Write($"{localInterface.PadRight(_lenghtEgressIP)} | ");
         }
 
         private void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
@@ -183,7 +176,7 @@ namespace Tring
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Write($"{ipOrError.PadRight(_lenghtIP)}");
+            Console.Write($"{ipOrError.PadRight(_lenghtHostIP)}");
             Console.ResetColor();
             Console.Write($" | {request.Request.Port.ToString().PadRight(_lenghtPort)} | ");
         }
