@@ -49,7 +49,7 @@ namespace Tring
                     default:
                         var cancelationSource = new CancellationTokenSource();
                         await SetupConnections(optionWatch.Value() == "on", optionIPv6.Value() == "on", arguments.Values, cancelationSource);
-                        FinalCleanup(cancelationSource, startLine + arguments.Values.Count + extraSpacing);
+                        FinalCleanup(cancelationSource, startLine + arguments.Values.Count, extraSpacing);
                         break;
                 }
                 return 0;
@@ -88,7 +88,7 @@ namespace Tring
             }
             var printer = new OutputPrinter(connectors);
             var cancelationToken = cancelationSource.Token;
-            SetupCleanUp(cancelationSource, startLine + connectors.Count + extraSpacing);
+            SetupCleanUp(cancelationSource, startLine + connectors.Count, extraSpacing);
             if (watchMode)
                 tasks.Add(CheckIfEscPress(cancelationSource));
             printer.PrintTable();
@@ -155,17 +155,17 @@ namespace Tring
             });
         }
 
-        private static void SetupCleanUp(CancellationTokenSource sourceToken, int endLine)
+        private static void SetupCleanUp(CancellationTokenSource sourceToken, int endLine, int spacing)
         {
             Console.CancelKeyPress += delegate
             {
-                FinalCleanup(sourceToken, endLine);
+                FinalCleanup(sourceToken, endLine, spacing);
             };
         }
-        private static void FinalCleanup(CancellationTokenSource sourceToken, int endLine)
+        private static void FinalCleanup(CancellationTokenSource sourceToken, int endLine, int spacing)
         {
             sourceToken.Cancel();
-            OutputPrinter.CleanUp(endLine);
+            OutputPrinter.CleanUp(endLine,spacing);
             sourceToken.Dispose();
         }
     }

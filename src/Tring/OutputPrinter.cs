@@ -82,16 +82,16 @@ namespace Tring
                 Console.CursorVisible = false;
         }
 
-        public static void CleanUp(int endLine)
+        public static void CleanUp(int endLine, int extraSpacing)
         {
             if (!Console.IsOutputRedirected)
             {
                 Console.CursorVisible = true;
                 Console.ResetColor();
                 if (Console.CursorTop <= endLine)
-                    SetPrintLine(endLine);
+                    SetPrintLine(endLine+ extraSpacing);
                 else
-                    Console.CursorTop++;
+                    Console.CursorTop += extraSpacing;
             }
         }
         private void PrintProtocol(int port)
