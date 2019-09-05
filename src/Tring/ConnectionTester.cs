@@ -45,15 +45,17 @@ namespace Tring
             }
             else if (match.Success)
             {
-                var convertedPort = PortLogic.StringToPort(match.Groups["port"].Value);
+                var host = match.Groups["host"].Value;
+                var port = match.Groups["port"].Value;
+                var convertedPort = PortLogic.StringToPort(port);
                 if (convertedPort == PortLogic.UnsetPort)
-                    convertedPort = PortLogic.DeterminePortByProtocol(match.Groups["port"].Value);
-                if (!IPAddress.TryParse(match.Groups["host"].Value, out var ip))
-                    request = new ConnectionRequest(null, convertedPort, match.Groups["host"].Value);
+                    convertedPort = PortLogic.DeterminePortByProtocol(port);
+                if (!IPAddress.TryParse(host, out var ip))
+                    request = new ConnectionRequest(null, convertedPort, host);
                 else
                     request = new ConnectionRequest(ip, convertedPort);
 
-                if (IPv6Mode && request.Ip.AddressFamily != AddressFamily.InterNetworkV6)
+                if (IPv6Mode && request?.Ip?.AddressFamily != AddressFamily.InterNetworkV6)
                     throw new InvalidOperationException($"IPv6 mode is active but the ip provided is not IPv6: '{request.Ip.ToString()}'");
 
                 if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue)
@@ -201,6 +203,6 @@ namespace Tring
             return (IPEndPoint)ep;
         }
 
-        public bool IsIPv6 => IPv6Mode || request.Ip.AddressFamily == AddressFamily.InterNetworkV6;
+        public bool IsIPv6 => IPv6Mode || request?.Ip?.AddressFamily == AddressFamily.InterNetworkV6;
     }
 }

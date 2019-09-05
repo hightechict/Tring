@@ -1,8 +1,9 @@
 {
   "profiles": {
-    "Tring": {
+    "Start": {
       "commandName": "Project",
-      "commandLineArgs": "2001:4860:4860:0:0:0:0:8844:80 -6"
+      "commandLineArgs": "2001:4860:4860:0:0:0:0:8844:80 2001:4860:4860::8844:80 google.nl:20 10.100.100.22:80 google.nl:21 google.nl:22 google.nl:23 google.nl:24 10.100.100.1:80 10.100.100.0:80 -w",
+      "ErrorString": "After parsing a value an unexpected character was encountered: \". Path 'profiles.Tring.commandLineArgs', line 5, position 61."
     }
   }
 }

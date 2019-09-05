@@ -16,79 +16,109 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace Tring
 {
     internal class OutputPrinter
     {
         private const string timeFormat = "HH:mm:ss";
+        private object _lockObject;
+        private int _lenghtIP, _lenghtPort;
+        private const int _maximumLengthIPv4 = 15;
+        private const int _maximumLengthIPv6 = 39;
+        private const int _minimumLengthPort = 4;
 
-        public static void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status)
+        public OutputPrinter(IEnumerable<ConnectionTester> ConnectionRequests)
         {
-            PrintTime(startTime, status.TimeStamp);
-            PrintRequest(status);
-            PrintResult(status.Connect, status.ConnectionTimeMs);
-            PrintPing(status.PingResult, status.PingTimeMs);
-            PrintLocalInterface(status.LocalInterface);
-            PrintProtocol(status.Request.Port);
-            PrintHostName(status.Request.Url);
+            _lockObject = new object();
+            var lenghtPort = ConnectionRequests.Select(connection => connection.request.Port).Max(port => port.ToString().Length);
+            _lenghtPort = lenghtPort >= _minimumLengthPort ? lenghtPort : _minimumLengthPort;
+            _lenghtIP = ConnectionRequests.Select(connection => connection.request.Ip).Max(ip => ip?.ToString()?.Length) ?? 0;
+
+            var hasURL = ConnectionRequests.Any(tester => string.IsNullOrEmpty(tester.request.Url));
+            var isIPv6On = ConnectionRequests.Any(tester => tester.IsIPv6 && string.IsNullOrEmpty(tester.request.Url));
+
+            if (isIPv6On)
+                _lenghtIP = _maximumLengthIPv6;
+            else if (hasURL && _lenghtIP < _maximumLengthIPv4)
+                _lenghtIP = _maximumLengthIPv4;
         }
 
-        public static void PrintTable()
+        public void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status, int index)
         {
-            Console.WriteLine("| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname  ");
-            // example output  | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
-            // IPv6            | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
+            lock (_lockObject)
+            {
+                SetPrintLine(index);
+                PrintTime(startTime, status.TimeStamp);
+                PrintRequest(status);
+                PrintResult(status.Connect, status.ConnectionTimeMs);
+                PrintPing(status.PingResult, status.PingTimeMs);
+                PrintLocalInterface(status.LocalInterface);
+                PrintProtocol(status.Request.Port);
+                PrintHostName(status.Request.Url); 
+            }
         }
 
-        public static void ResetPrintLine()
+        public void PrintTable()
+        {
+            Console.WriteLine(" | Time              | "+ "IP".PadRight(_lenghtIP)+ " | "+"Port".PadRight(_lenghtPort)+" | Connect | Ping    | "+"Egress".PadRight(_lenghtIP)+" | Protocol | Hostname");
+            // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
+            // IPv6             | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
+        }
+
+        public static void SetPrintLine(int lines = 0)
         {
             if (!Console.IsOutputRedirected)
-                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.SetCursorPosition(0, lines);
         }
 
-        public static void HideCursor()
+        public  void HideCursor()
         {
             if (!Console.IsOutputRedirected)
                 Console.CursorVisible = false;
         }
 
-        public static void CleanUp()
+        public static void CleanUp(int endLine)
         {
             if (!Console.IsOutputRedirected)
             {
                 Console.CursorVisible = true;
                 Console.ResetColor();
-                Console.CursorTop++;
+                if (Console.CursorTop <= endLine)
+                    SetPrintLine(endLine+1);
+                else
+                    Console.CursorTop++;
             }
         }
-        public static void SetupCleanUp()
+        public void SetupCleanUp(CancellationTokenSource sourceToken, int endLine)
         {
             Console.CancelKeyPress += delegate
             {
-                if (!Console.IsOutputRedirected)
-                {
-                    CleanUp();
-                }
+                sourceToken.Cancel();
+                CleanUp(endLine);
+                sourceToken.Dispose();
             };
         }
-        private static void PrintProtocol(int port)
+        private void PrintProtocol(int port)
         {
             Console.Write($"{PortLogic.DetermineProtocolByPort(port).PadRight(8)} | ");
         }
-        private static void PrintHostName(string url)
+        private void PrintHostName(string url)
         {
             Console.ResetColor();
             Console.WriteLine(url);
         }
 
-        private static void PrintLocalInterface(string localInterface)
+        private void PrintLocalInterface(string localInterface)
         {
             Console.ResetColor();
-            Console.Write($"{localInterface.PadRight(15)} | ");
+            Console.Write($"{localInterface.PadRight(_lenghtIP)} | ");
         }
 
-        private static void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
+        private void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
         {
             var result = "";
             switch (pingResult)
@@ -112,7 +142,7 @@ namespace Tring
             Console.Write(" | ");
         }
 
-        private static void PrintResult(ConnectionTester.ConnectionStatus connect, long responseTimeMS)
+        private void PrintResult(ConnectionTester.ConnectionStatus connect, long responseTimeMS)
         {
             var result = "";
             switch (connect)
@@ -135,7 +165,7 @@ namespace Tring
             Console.Write(" | ");
         }
 
-        private static void PrintRequest(ConnectionResult request)
+        private void PrintRequest(ConnectionResult request)
         {
             var ipOrError = "";
             switch (request.DnsResult)
@@ -153,12 +183,12 @@ namespace Tring
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Write($"{ipOrError.PadRight(15)}");
+            Console.Write($"{ipOrError.PadRight(_lenghtIP)}");
             Console.ResetColor();
-            Console.Write($" | {request.Request.Port.ToString().PadRight(5)} | ");
+            Console.Write($" | {request.Request.Port.ToString().PadRight(_lenghtPort)} | ");
         }
 
-        private static void PrintTime(DateTimeOffset startTime, DateTimeOffset currentTime)
+        private void PrintTime(DateTimeOffset startTime, DateTimeOffset currentTime)
         {
             var toPrint = $"{startTime.ToString(timeFormat)}";
             if (startTime.ToString(timeFormat) != currentTime.ToString(timeFormat))
@@ -166,7 +196,7 @@ namespace Tring
                 toPrint += $"-{currentTime.ToString(timeFormat)}";
             }
             Console.ResetColor();
-            Console.Write($"| {toPrint.PadRight(17)} | ");
+            Console.Write($" | {toPrint.PadRight(17)} | ");
         }
     }
 }
