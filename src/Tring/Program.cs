@@ -36,9 +36,9 @@ namespace Tring
                 Name = "Tring"
             };
             app.HelpOption("-?|-h|--help");
-            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.", true);
+            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test. Multiple host entered space separated.", true);
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
-            var optionIPv6 = app.Option("-6|--ipv6", "Set the program to use IPv6 with", CommandOptionType.NoValue);
+            var optionIPv6 = app.Option("-6|--ipv6", "Set the program to use IPv6 for dns requests.", CommandOptionType.NoValue);
 
             app.OnExecute(async () =>
             {
