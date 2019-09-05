@@ -55,7 +55,7 @@ namespace Tring
                 else
                     request = new ConnectionRequest(ip, convertedPort);
 
-                if (IPv6Mode && request?.Ip?.AddressFamily != AddressFamily.InterNetworkV6)
+                if (IPv6Mode && request.Ip != null && request.Ip.AddressFamily != AddressFamily.InterNetworkV6)
                     throw new InvalidOperationException($"IPv6 mode is active but the ip provided is not IPv6: '{request.Ip.ToString()}'");
 
                 if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue)
