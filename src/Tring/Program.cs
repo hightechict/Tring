@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace Tring
 {
@@ -48,7 +48,9 @@ namespace Tring
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     default:
                         var cancelationSource = new CancellationTokenSource();
-                        await SetupConnections(optionWatch.Value() == "on", optionIPv6.Value() == "on", arguments.Values, cancelationSource);
+                        var watch = optionWatch.HasValue();
+                        var IPv6 = optionIPv6.HasValue();
+                        await SetupConnections(optionWatch.HasValue(), optionIPv6.HasValue(), arguments.Values, cancelationSource);
                         FinalCleanup(cancelationSource, startLine + arguments.Values.Count, extraSpacing);
                         break;
                 }
@@ -56,18 +58,18 @@ namespace Tring
             });
             try
             {
-                return app.Execute(args);
+                var exiCode = app.Execute(args);
+                return exiCode;
             }
             catch (AggregateException exception)
             {
-                var errors = exception.InnerExceptions.Where(e => !(e is TaskCanceledException));
-                foreach (var e in errors)
+                foreach (var e in exception.InnerExceptions)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Error.WriteLine(e.Message);
                     Console.ResetColor();
                 }
-                return errors.Any() ? -1 : 0;
+                return -1;
             }
             catch (Exception exception) when (!(exception is TaskCanceledException))
             {
@@ -75,6 +77,10 @@ namespace Tring
                 Console.Error.WriteLine(exception.Message);
                 Console.ResetColor();
                 return -1;
+            }
+            finally
+            {
+                app.Dispose();
             }
         }
 
@@ -131,7 +137,11 @@ namespace Tring
 
                     if (watch.ElapsedMilliseconds < 1000)
                     {
-                        await Task.Delay(1000 - (int)watch.ElapsedMilliseconds, cancelationToken);
+                        try
+                        {
+                            await Task.Delay(1000 - (int)watch.ElapsedMilliseconds, cancelationToken);
+                        }
+                        catch (Exception) { }
                     }
 
                 }

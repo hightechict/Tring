@@ -88,7 +88,7 @@ namespace Tring
             {
                 Console.CursorVisible = true;
                 Console.ResetColor();
-                if (Console.CursorTop <= endLine)
+                if (Console.CursorTop <= endLine + extraSpacing)
                     SetPrintLine(endLine+ extraSpacing);
                 else
                     Console.CursorTop += extraSpacing;
