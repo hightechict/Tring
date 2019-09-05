@@ -61,13 +61,13 @@ namespace Tring
             catch (AggregateException exception)
             {
                 var errors = exception.InnerExceptions.Where(e => !(e is TaskCanceledException));
-                foreach(var e in errors)
+                foreach (var e in errors)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Error.WriteLine(e.Message);
                     Console.ResetColor();
                 }
-                return errors.Any() ? -1 : 0; 
+                return errors.Any() ? -1 : 0;
             }
             catch (Exception exception) when (!(exception is TaskCanceledException))
             {
@@ -89,8 +89,8 @@ namespace Tring
             var printer = new OutputPrinter(connectors);
             var cancelationToken = cancelationSource.Token;
             SetupCleanUp(cancelationSource, startLine + connectors.Count + extraSpacing);
-            if(watchMode)
-                tasks.Add(CheckIfEscPress(cancelationSource, Console.CursorTop + connectors.Count));
+            if (watchMode)
+                tasks.Add(CheckIfEscPress(cancelationSource));
             printer.PrintTable();
             printer.HideCursor();
             for (int index = 0; index < connectors.Count; index++)
@@ -137,7 +137,7 @@ namespace Tring
                 }
             });
         }
-        private static async Task CheckIfEscPress(CancellationTokenSource tokenSource, int endLine)
+        private static async Task CheckIfEscPress(CancellationTokenSource tokenSource)
         {
             await Task.Run(() =>
             {

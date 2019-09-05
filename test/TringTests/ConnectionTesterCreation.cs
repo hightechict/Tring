@@ -32,7 +32,7 @@ namespace TringTests
         [InlineData("http://google.nl:80/test")]
         public void CreateConnectionTesterURL(string host)
         {
-            var tester = new ConnectionTester(host,false);
+            var tester = new ConnectionTester(host, false);
             tester.request.Url.Should().Be("google.nl");
             tester.request.Port.Should().Be(80);
         }
