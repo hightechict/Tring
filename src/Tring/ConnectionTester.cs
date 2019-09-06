@@ -20,43 +20,19 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace Tring
 {
     internal class ConnectionTester
     {
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
-        
-        public static readonly Regex SplitFormat = new Regex(@"^(?<host>.*):(?<port>\w+)$");
+
         public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
-        public ConnectionRequest request;
+        private ConnectionRequest _request;
 
-        public ConnectionTester(string input)
+        public ConnectionTester(ConnectionRequest request)
         {
-            request = new ConnectionRequest();
-            var match = SplitFormat.Match(input);
-            var uriCreated = Uri.TryCreate(input, UriKind.Absolute, out var uri);
-            if(uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
-            {
-                request = new ConnectionRequest(null, uri.Port, uri.DnsSafeHost);
-            }
-            else if (match.Success)
-            {
-                var convertedPort = PortLogic.StringToPort(match.Groups["port"].Value);
-                if (convertedPort == PortLogic.UnsetPort)
-                    convertedPort = PortLogic.DeterminePortByProtocol(match.Groups["port"].Value);
-                if (!IPAddress.TryParse(match.Groups["host"].Value, out var ip))
-                    request = new ConnectionRequest(null, convertedPort, match.Groups["host"].Value);
-                else
-                    request = new ConnectionRequest(ip, convertedPort);
-
-                if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue) throw new ArgumentException($"The input you provided for the port is not valid, your input: {request.Port}.");
-            }
-            else
-            {
-                throw new ArgumentException($"Invalid input: {input} is nether a valid url nor a host:port or host:protocol.");
-            }
+            _request = request;
         }
 
         public ConnectionResult TryConnect()
@@ -65,36 +41,37 @@ namespace Tring
             DNS = ConnectionStatus.Untried;
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
-            if (request.Ip == null)
+            if (_request.Ip == null)
             {
-                DNS = DnsLookup(request.Url, out var ip);
-                request = new ConnectionRequest(ip, request.Port, request.Url);
+                DNS = DnsLookup(_request.Url, out var ip);
+                _request = new ConnectionRequest(ip, _request.Port, _request.Url);
                 if (DNS != ConnectionStatus.Succes)
-                    return new ConnectionResult(request, DNS);
+                    return new ConnectionResult(_request, DNS);
             }
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            result = socket.BeginConnect(request.Ip, request.Port, null, null);
+            result = socket.BeginConnect(_request.Ip, _request.Port, null, null);
             bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
-            var localInterface = GetLocalPath(request.Ip, socket);
+            var localInterface = GetLocalPath(_request.Ip, socket);
             if (socket.Connected)
             {
                 watch.Stop();
                 socket.EndConnect(result);
                 var connectionTimeMs = watch.ElapsedMilliseconds;
                 Connection = ConnectionStatus.Succes;
-                return new ConnectionResult(request, DNS, Connection, ConnectionStatus.Untried, localInterface, connectionTimeMs);
+                return new ConnectionResult(_request, DNS, Connection, ConnectionStatus.Untried, localInterface, connectionTimeMs);
             }
             else
             {
                 socket.Close();
-                var (Ping, PingTimeMs) = PingHost(request.Ip);
+                var (Ping, PingTimeMs) = PingHost(_request.Ip);
                 if (connectionSuccess)
                     Connection = ConnectionStatus.Refused;
                 else
                     Connection = ConnectionStatus.TimeOut;
-                return new ConnectionResult(request, DNS, Connection, Ping, localInterface, 0, PingTimeMs);
+                return new ConnectionResult(_request, DNS, Connection, Ping, localInterface, 0, PingTimeMs);
             }
         }
+
         public static (ConnectionStatus status, long timeInMs) PingHost(IPAddress ip)
         {
             using (var ping = new Ping())

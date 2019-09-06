@@ -23,6 +23,7 @@ namespace Tring
     internal class PortLogic
     {
         public const int UnsetPort = -1;
+
         public static readonly Dictionary<string, int> PortByProtocols = new Dictionary<string, int>
         {
             ["ftp"] = 21,
@@ -42,6 +43,7 @@ namespace Tring
             ["sql"] = 1433,
             ["rdp"] = 3389
         };
+
         public static int StringToPort(string toConvert)
         {
             if (!int.TryParse(toConvert, out var toReturn))
@@ -50,6 +52,7 @@ namespace Tring
             }
             return toReturn;
         }
+
         public static int DeterminePortByProtocol(string protocol)
         {
             if (PortByProtocols.ContainsKey(protocol))
@@ -57,6 +60,7 @@ namespace Tring
             else
                 return UnsetPort;
         }
+
         public static string DetermineProtocolByPort(int port) => PortByProtocols.FirstOrDefault(pair => pair.Value == port).Key ?? "";
     }
 }
