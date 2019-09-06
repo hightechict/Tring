@@ -49,7 +49,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
   	  <ReferenceAssemblies>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2</ReferenceAssemblies>
     </PropertyGroup>-->
     <Message Importance="high" Text="Executing ILMerge...with target platform from $(ReferenceAssemblies)" />
-    <Exec Command="&quot;$(PkgILMerge)\tools\ILMerge.exe&quot; /target:exe /out:@(MainAssembly) /internalize &quot;@(IntermediateAssembly)&quot; @(AssembliesToMerge->'&quot;%(FullPath)&quot;', ' ')" />
+    <Exec Command="&quot;$(PkgILMerge)\tools\ILMerge.exe&quot; /ndebug /target:exe /out:@(MainAssembly) /internalize &quot;@(IntermediateAssembly)&quot; @(AssembliesToMerge->'&quot;%(FullPath)&quot;', ' ')" />
     <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
   </Target>
 
