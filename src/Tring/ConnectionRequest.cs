@@ -41,7 +41,8 @@ namespace Tring
             var uriCreated = Uri.TryCreate(input, UriKind.Absolute, out var uri);
             if (uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
             {
-                request = new ConnectionRequest(null, uri.Port, uri.DnsSafeHost, ipv6Mode);
+                var port = uri.Port == PortLogic.UnsetPort ? PortLogic.DeterminePortByProtocol(uri.Scheme) : uri.Port;
+                request = new ConnectionRequest(null, port, uri.DnsSafeHost, ipv6Mode);
             }
             else if (match.Success)
             {
