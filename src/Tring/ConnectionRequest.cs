@@ -33,6 +33,7 @@ namespace Tring
             Port = port;
             _ipv6Mode = ipv6Mode;
         }
+
         public static ConnectionRequest Parse(string input,bool ipv6Mode =false)
         {
             ConnectionRequest request;
