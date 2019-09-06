@@ -23,48 +23,70 @@ using Xunit;
 
 namespace TringTests
 {
-    public class ConnectionTesterCreation
+    public class ConnectionRequestCreation
     {
         [Theory]
         [InlineData("http://google.nl")]
         [InlineData("http://google.nl/test")]
         [InlineData("http://google.nl:80")]
         [InlineData("http://google.nl:80/test")]
-        public void CreateConnectionTesterURL(string host)
+        public void CreateConnectionRequestBasedOnURL(string host)
         {
+<<<<<<< HEAD
             var tester = new ConnectionTester(host, false);
             tester.request.Url.Should().Be("google.nl");
             tester.request.Port.Should().Be(80);
+=======
+            var request = ConnectionRequest.Parse(host);
+            request.Url.Should().Be("google.nl");
+            request.Port.Should().Be(80);
+>>>>>>> feature/Multi-Input-Support
         }
         [Theory]
         [InlineData("google.nl:80")]
         [InlineData("google.nl:http")]
-        public void CreateConnectionTesterPartialURL(string host)
+        public void CreateConnectionRequestPartialURL(string host)
         {
+<<<<<<< HEAD
             var tester = new ConnectionTester(host, false);
             tester.request.Url.Should().Be("google.nl");
             tester.request.Port.Should().Be(80);
+=======
+            var request = ConnectionRequest.Parse(host);
+            request.Url.Should().Be("google.nl");
+            request.Port.Should().Be(80);
+>>>>>>> feature/Multi-Input-Support
         }
 
         [Theory]
         [InlineData("1.1.1.1:80")]
         [InlineData("1.1.1.1:http")]
-        public void CreateConnectionTesterIP(string host)
+        public void CreateConnectionRequestIP(string host)
         {
+<<<<<<< HEAD
             var tester = new ConnectionTester(host, false);
             tester.request.Ip.Should().Be(IPAddress.Parse("1.1.1.1"));
             tester.request.Port.Should().Be(80);
+=======
+            var request = ConnectionRequest.Parse(host);
+            request.Ip.Should().Be(IPAddress.Parse("1.1.1.1"));
+            request.Port.Should().Be(80);
+>>>>>>> feature/Multi-Input-Support
         }
 
         [Theory]
         [InlineData("")]
         [InlineData("1.1.1.1")]
         [InlineData("1.1.1.1:nonsense")]
-        public void CreateConnectionTesterIncorrectly(string host)
+        public void CreateConnectionRequestIncorrectly(string host)
         {
             Action action = () =>
             {
+<<<<<<< HEAD
                 _ = new ConnectionTester(host, false);
+=======
+                _ = ConnectionRequest.Parse(host);
+>>>>>>> feature/Multi-Input-Support
             };
             action.Should().Throw<Exception>();
         }

@@ -30,15 +30,15 @@ namespace Tring
         private const int _maximumLengthIPv6 = 39;
         private const int _minimumLengthPort = 4;
 
-        public OutputPrinter(IEnumerable<ConnectionTester> ConnectionRequests)
+        public OutputPrinter(IEnumerable<ConnectionRequest> ConnectionRequests)
         {
             _lockObject = new object();
-            var lenghtPort = ConnectionRequests.Select(connection => connection.request.Port).Max(port => port.ToString().Length);
+            var lenghtPort = ConnectionRequests.Select(request => request.Port).Max(port => port.ToString().Length);
             _lenghtPort = lenghtPort >= _minimumLengthPort ? lenghtPort : _minimumLengthPort;
-            _lenghtHostIP = ConnectionRequests.Select(connection => connection.request.Ip).Max(ip => ip?.ToString()?.Length) ?? 0;
+            _lenghtHostIP = ConnectionRequests.Select(request => request.Ip).Max(ip => ip?.ToString()?.Length) ?? 0;
 
-            var hasURL = ConnectionRequests.Any(tester => !string.IsNullOrEmpty(tester.request.Url));
-            var isIPv6On = ConnectionRequests.Any(tester => tester.IsIPv6 && !string.IsNullOrEmpty(tester.request.Url));
+            var hasURL = ConnectionRequests.Any(request => !string.IsNullOrEmpty(request.Url));
+            var isIPv6On = ConnectionRequests.Any(request => request.IsIPv6 && !string.IsNullOrEmpty(request.Url));
 
             if (isIPv6On)
                 _lenghtHostIP = _maximumLengthIPv6;
@@ -82,7 +82,7 @@ namespace Tring
                 Console.CursorVisible = false;
         }
 
-        public static void CleanUp(int endLine, int extraSpacing)
+        public static void CleanUpConsole(int endLine, int extraSpacing)
         {
             if (!Console.IsOutputRedirected)
             {
@@ -94,10 +94,12 @@ namespace Tring
                     Console.CursorTop += extraSpacing;
             }
         }
+
         private void PrintProtocol(int port)
         {
-            Console.Write($"{PortLogic.DetermineProtocolByPort(port).PadRight(8)} | ");
+            Console.Write($"{PortLogic.DetermineProtocolByPort(port),-8} | ");
         }
+
         private void PrintHostName(string url)
         {
             Console.ResetColor();
@@ -129,7 +131,7 @@ namespace Tring
                     result = "NOK";
                     break;
             }
-            Console.Write($"{result.PadRight(7)}");
+            Console.Write($"{result,-7}");
             Console.ResetColor();
             Console.Write(" | ");
         }
@@ -152,7 +154,7 @@ namespace Tring
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Write($"{result.PadRight(7)}");
+            Console.Write($"{result,-7}");
             Console.ResetColor();
             Console.Write(" | ");
         }
@@ -188,7 +190,7 @@ namespace Tring
                 toPrint += $"-{currentTime.ToString(timeFormat)}";
             }
             Console.ResetColor();
-            Console.Write($" | {toPrint.PadRight(17)} | ");
+            Console.Write($" | {toPrint,-17} | ");
         }
     }
 }

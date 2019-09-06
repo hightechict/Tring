@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
@@ -86,12 +87,9 @@ namespace Tring
         private static Task SetupConnections(bool watchMode, bool IPv6Mode, List<string> connections, CancellationTokenSource cancelationSource)
         {
             var tasks = new List<Task>();
-            var connectors = new List<ConnectionTester>();
-            foreach (string input in connections)
-            {
-                connectors.Add(new ConnectionTester(input, IPv6Mode));
-            }
-            var printer = new OutputPrinter(connectors);
+            var requests = connections.Select(connection => ConnectionRequest.Parse(connection, IPv6Mode));
+            var connectors = requests.Select(r => new ConnectionTester(r)).ToList();
+            var printer = new OutputPrinter(requests);
             var cancelationToken = cancelationSource.Token;
             SetupCleanUp(cancelationSource, startLine + connectors.Count, extraSpacing);
             if (watchMode)
@@ -148,7 +146,7 @@ namespace Tring
         }
         private static async Task CheckIfEscPress(CancellationTokenSource tokenSource)
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 do
                 {
@@ -158,7 +156,7 @@ namespace Tring
                     }
                     else
                     {
-                        Task.Delay(200, tokenSource.Token);
+                        await Task.Delay(200, tokenSource.Token);
                     }
                 } while (!tokenSource.Token.IsCancellationRequested);
             });
@@ -174,7 +172,7 @@ namespace Tring
         private static void FinalCleanup(CancellationTokenSource sourceToken, int endLine, int spacing)
         {
             sourceToken.Cancel();
-            OutputPrinter.CleanUp(endLine,spacing);
+            OutputPrinter.CleanUpConsole(endLine,spacing);
             sourceToken.Dispose();
         }
     }
