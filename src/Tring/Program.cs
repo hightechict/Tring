@@ -20,12 +20,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace Tring
 {
     public class Program
     {
+        private static readonly int startLine = Console.CursorTop;
+        private const int extraSpacing = 2;
+
         static int Main(string[] args)
         {
             var app = new CommandLineApplication
@@ -33,8 +36,9 @@ namespace Tring
                 Name = "Tring"
             };
             app.HelpOption("-?|-h|--help");
-            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test.", true);
+            var arguments = app.Argument("arguments", "Enter the ip or url you wish to test. Multiple host entered space separated.", true);
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
+            var optionIPv6 = app.Option("-6|--ipv6", "Set the program to use IPv6 for dns requests.", CommandOptionType.NoValue);
 
             app.OnExecute(async () =>
             {
@@ -43,26 +47,29 @@ namespace Tring
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     default:
-                        await SetupConnections(optionWatch.Value() == "on", arguments.Values);
-                        OutputPrinter.CleanUpConsole(arguments.Values.Count);
+                        var cancelationSource = new CancellationTokenSource();
+                        var watch = optionWatch.HasValue();
+                        var IPv6 = optionIPv6.HasValue();
+                        await SetupConnections(optionWatch.HasValue(), optionIPv6.HasValue(), arguments.Values, cancelationSource);
+                        FinalCleanup(cancelationSource, startLine + arguments.Values.Count, extraSpacing);
                         break;
                 }
                 return 0;
             });
             try
             {
-                return app.Execute(args);
+                var exiCode = app.Execute(args);
+                return exiCode;
             }
             catch (AggregateException exception)
             {
-                var errors = exception.InnerExceptions.Where(e => !(e is TaskCanceledException));
-                foreach (var e in errors)
+                foreach (var e in exception.InnerExceptions)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Error.WriteLine(e.Message);
                     Console.ResetColor();
                 }
-                return errors.Any() ? -1 : 0;
+                return -1;
             }
             catch (Exception exception) when (!(exception is TaskCanceledException))
             {
@@ -71,17 +78,20 @@ namespace Tring
                 Console.ResetColor();
                 return -1;
             }
+            finally
+            {
+                app.Dispose();
+            }
         }
 
-        private static Task SetupConnections(bool watchMode, List<string> connections)
+        private static Task SetupConnections(bool watchMode, bool IPv6Mode, List<string> connections, CancellationTokenSource cancelationSource)
         {
             var tasks = new List<Task>();
-            var requests = connections.Select(connection => ConnectionRequest.Parse(connection));
+            var requests = connections.Select(connection => ConnectionRequest.Parse(connection, IPv6Mode));
             var connectors = requests.Select(r => new ConnectionTester(r)).ToList();
             var printer = new OutputPrinter(requests);
-            var cancelationSource = new CancellationTokenSource();
             var cancelationToken = cancelationSource.Token;
-            printer.SetCancelEventHandler(cancelationSource, Console.CursorTop + connectors.Count);
+            SetCancelEventHandler(cancelationSource, startLine + connectors.Count, extraSpacing);
             if (watchMode)
                 tasks.Add(CheckIfEscPress(cancelationSource));
             printer.PrintTable();
@@ -124,9 +134,12 @@ namespace Tring
 
                     if (watch.ElapsedMilliseconds < 1000)
                     {
-                        await Task.Delay(1000 - (int)watch.ElapsedMilliseconds, cancelationToken);
+                        try
+                        {
+                            await Task.Delay(1000 - (int)watch.ElapsedMilliseconds, cancelationToken);
+                        }
+                        catch (Exception) { }
                     }
-
                 }
             });
         }
@@ -137,7 +150,7 @@ namespace Tring
             {
                 do
                 {
-                    if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape)
+                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
                     {
                         tokenSource.Cancel();
                     }
@@ -147,6 +160,21 @@ namespace Tring
                     }
                 } while (!tokenSource.Token.IsCancellationRequested);
             });
+        }
+
+        private static void SetCancelEventHandler(CancellationTokenSource sourceToken, int endLine, int spacing)
+        {
+            Console.CancelKeyPress += (sender, args) =>
+            {
+                FinalCleanup(sourceToken, endLine, spacing);
+            };
+        }
+
+        private static void FinalCleanup(CancellationTokenSource sourceToken, int endLine, int spacing)
+        {
+            sourceToken.Cancel();
+            OutputPrinter.CleanUpConsole(endLine, spacing);
+            sourceToken.Dispose();
         }
     }
 }

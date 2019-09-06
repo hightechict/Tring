@@ -19,6 +19,8 @@ $ dotnet tool install --global Tring
 
 To use Tring run the command `Tring` and supply a ip or url with a port, if the url contains a protocol the port will be inferred.
 Adding -w or --watch will keep checking the request every second.
+Adding -6 or --ipv6 will force dns requests to resovle to IPv6.
+It is also posible to enter multiple hosts space separated. 
 
 Accepted input expampels:
 ```bash
@@ -29,13 +31,15 @@ google.nl:http
 google.nl:80
 8.8.8.8:80
 8.8.8.8:http
+2001:4860:4860:0:0:0:0:8844:80 
+2001:4860:4860::8844:https 
 ```
 
 Output example:
 
 ```bash
-| Time              | IP              | Port  | Connect | Ping    | Local Interface | Protocol | Hostname
-| 14:38:05-14:38:07 | 172.217.20.99   | 80    | 7 ms    | -       | 10.100.100.112  | http     | google.nl
+ | Time              | IP              | Port | Connect | Ping    | Local interface | Protocol | Hostname
+ | 13:31:21-13:31:24 | 172.217.17.131  | 80   | 6 ms    | -       | 10.100.100.199  | http     | www.google.nl
 ```
 
 ## License

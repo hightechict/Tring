@@ -17,6 +17,7 @@
 
 using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
 namespace Tring
@@ -25,21 +26,22 @@ namespace Tring
     {
         private static readonly Regex SplitFormat = new Regex(@"^(?<host>.*):(?<port>\w+)$");
 
-        public ConnectionRequest(IPAddress ip = null, int port = PortLogic.UnsetPort, string url = "")
+        public ConnectionRequest(IPAddress ip = null, int port = PortLogic.UnsetPort, string url = "", bool ipv6Mode = false)
         {
             Ip = ip;
             Url = url;
             Port = port;
+            _ipv6Mode = ipv6Mode;
         }
 
-        public static ConnectionRequest Parse(string input)
+        public static ConnectionRequest Parse(string input, bool ipv6Mode = false)
         {
             ConnectionRequest request;
             var match = SplitFormat.Match(input);
             var uriCreated = Uri.TryCreate(input, UriKind.Absolute, out var uri);
             if (uriCreated && !string.IsNullOrEmpty(uri.DnsSafeHost))
             {
-                request = new ConnectionRequest(null, uri.Port, uri.DnsSafeHost);
+                request = new ConnectionRequest(null, uri.Port, uri.DnsSafeHost, ipv6Mode);
             }
             else if (match.Success)
             {
@@ -49,9 +51,9 @@ namespace Tring
                 if (convertedPort == PortLogic.UnsetPort)
                     convertedPort = PortLogic.DeterminePortByProtocol(port);
                 if (!IPAddress.TryParse(host, out var ip))
-                    request = new ConnectionRequest(null, convertedPort, host);
+                    request = new ConnectionRequest(null, convertedPort, host, ipv6Mode);
                 else
-                    request = new ConnectionRequest(ip, convertedPort);
+                    request = new ConnectionRequest(ip, convertedPort, "", ipv6Mode);
 
                 if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue) throw new ArgumentException($"The input you provided for the port is not valid, your input: {request.Port}.");
             }
@@ -65,5 +67,7 @@ namespace Tring
         public IPAddress Ip { get; }
         public string Url { get; }
         public int Port { get; }
+        public bool IsIPv6 => Ip?.AddressFamily == AddressFamily.InterNetworkV6 || _ipv6Mode && Ip == null;
+        private readonly bool _ipv6Mode;
     }
 }

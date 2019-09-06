@@ -26,7 +26,6 @@ namespace Tring
     internal class ConnectionTester
     {
         private readonly TimeSpan waitTime = TimeSpan.FromSeconds(1);
-
         public enum ConnectionStatus { Succes, TimeOut, Refused, Untried };
         private ConnectionRequest _request;
 
@@ -39,23 +38,34 @@ namespace Tring
         {
             ConnectionStatus Connection, DNS;
             DNS = ConnectionStatus.Untried;
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket;
+            if (_request.IsIPv6)
+            {
+                socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+            }
+            else
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult result;
             if (_request.Ip == null)
             {
                 DNS = DnsLookup(_request.Url, out var ip);
                 _request = new ConnectionRequest(ip, _request.Port, _request.Url);
                 if (DNS != ConnectionStatus.Succes)
+                {
+                    socket.Dispose();
                     return new ConnectionResult(_request, DNS);
+                }
             }
             var watch = System.Diagnostics.Stopwatch.StartNew();
             result = socket.BeginConnect(_request.Ip, _request.Port, null, null);
-            bool connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
+            var connectionSuccess = result.AsyncWaitHandle.WaitOne(waitTime);
             var localInterface = GetLocalPath(_request.Ip, socket);
             if (socket.Connected)
             {
                 watch.Stop();
                 socket.EndConnect(result);
+                socket.Dispose();
                 var connectionTimeMs = watch.ElapsedMilliseconds;
                 Connection = ConnectionStatus.Succes;
                 return new ConnectionResult(_request, DNS, Connection, ConnectionStatus.Untried, localInterface, connectionTimeMs);
@@ -63,6 +73,7 @@ namespace Tring
             else
             {
                 socket.Close();
+                socket.Dispose();
                 var (Ping, PingTimeMs) = PingHost(_request.Ip);
                 if (connectionSuccess)
                     Connection = ConnectionStatus.Refused;
@@ -76,7 +87,15 @@ namespace Tring
         {
             using (var ping = new Ping())
             {
-                var reply = ping.Send(ip);
+                PingReply reply;
+                try
+                {
+                    reply = ping.Send(ip);
+                }
+                catch (Exception)
+                {
+                    return (ConnectionStatus.Refused, 0);
+                }
                 return (reply?.Status == IPStatus.Success ? ConnectionStatus.Succes : ConnectionStatus.TimeOut, reply?.RoundtripTime ?? long.MinValue);
             }
         }
@@ -90,7 +109,16 @@ namespace Tring
             {
                 try
                 {
-                    ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetwork);
+                    if (_request.IsIPv6)
+                    {
+                        ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetworkV6);
+                        if (ip == null)
+                            throw new ArgumentException($"No IPv6 address was found for {host}.");
+                    }
+                    else
+                    {
+                        ip = Dns.EndGetHostEntry(lookupResult)?.AddressList.FirstOrDefault(foundIp => foundIp.AddressFamily == AddressFamily.InterNetwork);
+                    }
                     return ConnectionStatus.Succes;
                 }
                 catch (Exception)
@@ -104,15 +132,26 @@ namespace Tring
             }
         }
 
-        private static string GetLocalPath(IPAddress ip, Socket socket)
+        private string GetLocalPath(IPAddress ip, Socket socket)
         {
+            IPEndPoint localEndPoint;
             IPAddress remoteIp = ip;
             IPEndPoint remoteEndPoint = new IPEndPoint(remoteIp, 0);
-            IPEndPoint localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
+            try
+            {
+                localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
+            }
+            catch (Exception)
+            {
+                if (_request.IsIPv6)
+                    throw new NotSupportedException("A error occured while trying to determine the local end point, the network or provider most likely does not support IPv6.");
+                else
+                    throw new InvalidOperationException("A error occured while trying to determine the local end point.");
+            }
             return localEndPoint.Address.ToString();
         }
 
-        private static IPEndPoint QueryRoutingInterface(
+        private IPEndPoint QueryRoutingInterface(
           Socket socket,
           IPEndPoint remoteEndPoint)
         {
@@ -133,7 +172,6 @@ namespace Tring
             {
                 address[i] = outBytes[i];
             }
-
             EndPoint ep = remoteEndPoint.Create(address);
             return (IPEndPoint)ep;
         }
