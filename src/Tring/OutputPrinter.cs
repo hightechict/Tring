@@ -29,6 +29,7 @@ namespace Tring
         private const int _maximumLengthIPv4 = 15;
         private const int _maximumLengthIPv6 = 39;
         private const int _minimumLengthPort = 4;
+        private readonly bool _containsURL;
 
         public OutputPrinter(IEnumerable<ConnectionRequest> ConnectionRequests)
         {
@@ -46,6 +47,7 @@ namespace Tring
                 _lenghtHostIP = _maximumLengthIPv4;
 
             _lenghtEgressIP = _lenghtHostIP > _maximumLengthIPv4 ? _maximumLengthIPv6 : _maximumLengthIPv4;
+            _containsURL = ConnectionRequests.Any(request => !string.IsNullOrEmpty(request.Url));
         }
 
         public void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status, int index)
@@ -59,13 +61,18 @@ namespace Tring
                 PrintPing(status.PingResult, status.PingTimeMs);
                 PrintLocalInterface(status.LocalInterface);
                 PrintProtocol(status.Request.Port);
-                PrintHostName(status.Request.Url);
+                if(_containsURL)
+                    PrintHostName(status.Request.Url);
             }
         }
 
         public void PrintTable()
         {
-            Console.WriteLine(" | Time              | " + "IP".PadRight(_lenghtHostIP) + " | " + "Port".PadRight(_lenghtPort) + " | Connect | Ping    | " + "Egress".PadRight(_lenghtEgressIP) + " | Protocol | Hostname");
+            Console.Write(" | Time              | " + "IP".PadRight(_lenghtHostIP) + " | " + "Port".PadRight(_lenghtPort) + " | Connect | Ping    | " + "Local interface".PadRight(_lenghtEgressIP) + " | Protocol |");
+            if (_containsURL)
+                Console.Write("Hostname");
+            Console.Write("\n");
+
             // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
             // IPv6             | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
         }
@@ -89,7 +96,7 @@ namespace Tring
                 Console.CursorVisible = true;
                 Console.ResetColor();
                 if (Console.CursorTop <= endLine + extraSpacing)
-                    SetPrintLine(endLine+ extraSpacing);
+                    SetPrintLine(endLine + extraSpacing);
                 else
                     Console.CursorTop += extraSpacing;
             }

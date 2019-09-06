@@ -34,7 +34,7 @@ namespace Tring
             _ipv6Mode = ipv6Mode;
         }
 
-        public static ConnectionRequest Parse(string input,bool ipv6Mode =false)
+        public static ConnectionRequest Parse(string input, bool ipv6Mode = false)
         {
             ConnectionRequest request;
             var match = SplitFormat.Match(input);
@@ -53,7 +53,7 @@ namespace Tring
                 if (!IPAddress.TryParse(host, out var ip))
                     request = new ConnectionRequest(null, convertedPort, host, ipv6Mode);
                 else
-                    request = new ConnectionRequest(ip, convertedPort,"" , ipv6Mode);
+                    request = new ConnectionRequest(ip, convertedPort, "", ipv6Mode);
 
                 if (request.Port == PortLogic.UnsetPort || request.Port < 0 || request.Port > ushort.MaxValue) throw new ArgumentException($"The input you provided for the port is not valid, your input: {request.Port}.");
             }

@@ -169,10 +169,11 @@ namespace Tring
                 FinalCleanup(sourceToken, endLine, spacing);
             };
         }
+
         private static void FinalCleanup(CancellationTokenSource sourceToken, int endLine, int spacing)
         {
             sourceToken.Cancel();
-            OutputPrinter.CleanUpConsole(endLine,spacing);
+            OutputPrinter.CleanUpConsole(endLine, spacing);
             sourceToken.Dispose();
         }
     }
