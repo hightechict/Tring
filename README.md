@@ -38,8 +38,8 @@ google.nl:80
 Output example:
 
 ```bash
- | Time              | IP              | Port | Connect | Ping    | Egress          | Protocol | Hostname
- | 11:38:23-11:38:30 | 172.217.17.99   | 80   | 5 ms    | -       | 10.100.100.199  | http     | google.nl
+ | Time              | IP              | Port | Connect | Ping    | Local interface | Protocol | Hostname
+ | 13:31:21-13:31:24 | 172.217.17.131  | 80   | 6 ms    | -       | 10.100.100.199  | http     | www.google.nl
 ```
 
 ## License

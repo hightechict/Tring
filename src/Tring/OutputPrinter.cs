@@ -70,7 +70,7 @@ namespace Tring
         {
             Console.Write(" | Time              | " + "IP".PadRight(_lenghtHostIP) + " | " + "Port".PadRight(_lenghtPort) + " | Connect | Ping    | " + "Local interface".PadRight(_lenghtEgressIP) + " | Protocol |");
             if (_containsURL)
-                Console.Write("Hostname");
+                Console.Write(" Hostname");
             Console.Write("\n");
 
             // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
