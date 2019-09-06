@@ -44,7 +44,7 @@ namespace Tring
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     default:
                         await SetupConnections(optionWatch.Value() == "on", arguments.Values);
-                        OutputPrinter.CleanUp(arguments.Values.Count);
+                        OutputPrinter.CleanUpConsole(arguments.Values.Count);
                         break;
                 }
                 return 0;
@@ -56,13 +56,13 @@ namespace Tring
             catch (AggregateException exception)
             {
                 var errors = exception.InnerExceptions.Where(e => !(e is TaskCanceledException));
-                foreach(var e in errors)
+                foreach (var e in errors)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Error.WriteLine(e.Message);
                     Console.ResetColor();
                 }
-                return errors.Any() ? -1 : 0; 
+                return errors.Any() ? -1 : 0;
             }
             catch (Exception exception) when (!(exception is TaskCanceledException))
             {
@@ -76,19 +76,14 @@ namespace Tring
         private static Task SetupConnections(bool watchMode, List<string> connections)
         {
             var tasks = new List<Task>();
-            var connectors = new List<ConnectionTester>();
-            foreach (string input in connections)
-            {
-                connectors.Add(new ConnectionTester(input));
-            }
-            var ipSize = connectors.Select(connection => connection.request.Ip).Max(ip => ip?.ToString()?.Length) ?? 15;
-            var portSize = connectors.Select(connection => connection.request.Port).Max(port => port.ToString().Length);
-            var printer = new OutputPrinter(ipSize, portSize);
+            var requests = connections.Select(connection => ConnectionRequest.Parse(connection));
+            var connectors = requests.Select(r => new ConnectionTester(r)).ToList();
+            var printer = new OutputPrinter(requests);
             var cancelationSource = new CancellationTokenSource();
             var cancelationToken = cancelationSource.Token;
-            printer.SetupCleanUp(cancelationSource, Console.CursorTop + connectors.Count);
-            if(watchMode)
-                tasks.Add(CheckIfEscPress(cancelationSource, Console.CursorTop + connectors.Count));
+            printer.SetCancelEventHandler(cancelationSource, Console.CursorTop + connectors.Count);
+            if (watchMode)
+                tasks.Add(CheckIfEscPress(cancelationSource));
             printer.PrintTable();
             printer.HideCursor();
             for (int index = 0; index < connectors.Count; index++)
@@ -135,9 +130,9 @@ namespace Tring
                 }
             });
         }
-        private static async Task CheckIfEscPress(CancellationTokenSource tokenSource, int endLine)
+        private static async Task CheckIfEscPress(CancellationTokenSource tokenSource)
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 do
                 {
@@ -147,7 +142,7 @@ namespace Tring
                     }
                     else
                     {
-                        Task.Delay(200, tokenSource.Token);
+                        await Task.Delay(200, tokenSource.Token);
                     }
                 } while (!tokenSource.Token.IsCancellationRequested);
             });

@@ -16,6 +16,8 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Tring
@@ -23,16 +25,25 @@ namespace Tring
     internal class OutputPrinter
     {
         private const string timeFormat = "HH:mm:ss";
-        private object _lockObject;
-        private int _lenghtIP, _lenghtPort;
-        private const int _minimumLengthIP = 15;
+        private readonly object _lockObject;
+        private readonly int _lenghtHostIP, _lenghtEgressIP, _lenghtPort;
+        private const int _maximumLengthIPv4 = 15;
+        private const int _maximumLengthIPv6 = 39;
         private const int _minimumLengthPort = 4;
 
-        public OutputPrinter(int lenghtIP, int lenghtPort)
+        public OutputPrinter(IEnumerable<ConnectionRequest> ConnectionRequests)
         {
             _lockObject = new object();
-            _lenghtIP = lenghtIP >= _minimumLengthIP ? lenghtIP : _minimumLengthIP;
+            var lenghtPort = ConnectionRequests.Select(request => request.Port).Max(port => port.ToString().Length);
             _lenghtPort = lenghtPort >= _minimumLengthPort ? lenghtPort : _minimumLengthPort;
+            _lenghtHostIP = ConnectionRequests.Select(request => request.Ip).Max(ip => ip?.ToString()?.Length) ?? 0;
+
+            var hasURL = ConnectionRequests.Any(tester => !string.IsNullOrEmpty(tester.Url));
+
+            if (hasURL && _lenghtHostIP < _maximumLengthIPv4)
+                _lenghtHostIP = _maximumLengthIPv4;
+
+            _lenghtEgressIP = _lenghtHostIP > _maximumLengthIPv4 ? _maximumLengthIPv6 : _maximumLengthIPv4;
         }
 
         public void PrintLogEntry(DateTimeOffset startTime, ConnectionResult status, int index)
@@ -46,14 +57,15 @@ namespace Tring
                 PrintPing(status.PingResult, status.PingTimeMs);
                 PrintLocalInterface(status.LocalInterface);
                 PrintProtocol(status.Request.Port);
-                PrintHostName(status.Request.Url); 
+                PrintHostName(status.Request.Url);
             }
         }
 
         public void PrintTable()
         {
-            Console.WriteLine(" | Time              | "+ "IP".PadRight(_lenghtIP)+ " | "+"Port".PadRight(_lenghtPort)+" | Connect | Ping    | "+"Egress".PadRight(_lenghtIP)+" | Protocol | Hostname");
+            Console.WriteLine(" | Time              | " + "IP".PadRight(_lenghtHostIP) + " | " + "Port".PadRight(_lenghtPort) + " | Connect | Ping    | " + "Egress".PadRight(_lenghtEgressIP) + " | Protocol | Hostname");
             // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
+            // IPv6             | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
         }
 
         public static void SetPrintLine(int lines = 0)
@@ -62,35 +74,35 @@ namespace Tring
                 Console.SetCursorPosition(0, lines);
         }
 
-        public  void HideCursor()
+        public void HideCursor()
         {
             if (!Console.IsOutputRedirected)
                 Console.CursorVisible = false;
         }
 
-        public static void CleanUp(int endLine)
+        public static void CleanUpConsole(int endLine)
         {
             if (!Console.IsOutputRedirected)
             {
                 Console.CursorVisible = true;
                 Console.ResetColor();
                 if (Console.CursorTop <= endLine)
-                    SetPrintLine(endLine+1);
+                    SetPrintLine(endLine + 1);
                 else
                     Console.CursorTop++;
             }
         }
-        public void SetupCleanUp(CancellationTokenSource sourceToken, int endLine)
+        public void SetCancelEventHandler(CancellationTokenSource sourceToken, int endLine)
         {
-            Console.CancelKeyPress += delegate
+            Console.CancelKeyPress += (sender, args) =>
             {
                 sourceToken.Cancel();
-                CleanUp(endLine);
+                CleanUpConsole(endLine);
             };
         }
         private void PrintProtocol(int port)
         {
-            Console.Write($"{PortLogic.DetermineProtocolByPort(port).PadRight(8)} | ");
+            Console.Write($"{PortLogic.DetermineProtocolByPort(port),-8} | ");
         }
         private void PrintHostName(string url)
         {
@@ -101,7 +113,7 @@ namespace Tring
         private void PrintLocalInterface(string localInterface)
         {
             Console.ResetColor();
-            Console.Write($"{localInterface.PadRight(_lenghtIP)} | ");
+            Console.Write($"{localInterface.PadRight(_lenghtEgressIP)} | ");
         }
 
         private void PrintPing(ConnectionTester.ConnectionStatus pingResult, long responseTimeMS)
@@ -123,7 +135,7 @@ namespace Tring
                     result = "NOK";
                     break;
             }
-            Console.Write($"{result.PadRight(7)}");
+            Console.Write($"{result,-7}");
             Console.ResetColor();
             Console.Write(" | ");
         }
@@ -146,7 +158,7 @@ namespace Tring
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Write($"{result.PadRight(7)}");
+            Console.Write($"{result,-7}");
             Console.ResetColor();
             Console.Write(" | ");
         }
@@ -169,7 +181,7 @@ namespace Tring
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Write($"{ipOrError.PadRight(_lenghtIP)}");
+            Console.Write($"{ipOrError.PadRight(_lenghtHostIP)}");
             Console.ResetColor();
             Console.Write($" | {request.Request.Port.ToString().PadRight(_lenghtPort)} | ");
         }
@@ -182,7 +194,7 @@ namespace Tring
                 toPrint += $"-{currentTime.ToString(timeFormat)}";
             }
             Console.ResetColor();
-            Console.Write($" | {toPrint.PadRight(17)} | ");
+            Console.Write($" | {toPrint,-17} | ");
         }
     }
 }
