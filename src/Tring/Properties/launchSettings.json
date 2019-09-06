@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Start": {
+      "commandName": "Project",
+      "commandLineArgs": "8.8.8.8:80 -w",
+      "ErrorString": "After parsing a value an unexpected character was encountered: \". Path 'profiles.Tring.commandLineArgs', line 5, position 61."
+    }
+  }
+}

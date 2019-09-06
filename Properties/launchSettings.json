@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Tring": {
+      "commandName": "Project",
+      "commandLineArgs": "google.nl:https --watch"
+    }
+  }
+}
