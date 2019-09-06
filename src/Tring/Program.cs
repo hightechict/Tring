@@ -91,7 +91,7 @@ namespace Tring
             var connectors = requests.Select(r => new ConnectionTester(r)).ToList();
             var printer = new OutputPrinter(requests);
             var cancelationToken = cancelationSource.Token;
-            SetupCleanUp(cancelationSource, startLine + connectors.Count, extraSpacing);
+            SetCancelEventHandler(cancelationSource, startLine + connectors.Count, extraSpacing);
             if (watchMode)
                 tasks.Add(CheckIfEscPress(cancelationSource));
             printer.PrintTable();
@@ -140,7 +140,6 @@ namespace Tring
                         }
                         catch (Exception) { }
                     }
-
                 }
             });
         }
@@ -162,9 +161,9 @@ namespace Tring
             });
         }
 
-        private static void SetupCleanUp(CancellationTokenSource sourceToken, int endLine, int spacing)
+        private static void SetCancelEventHandler(CancellationTokenSource sourceToken, int endLine, int spacing)
         {
-            Console.CancelKeyPress += delegate
+            Console.CancelKeyPress += (sender, args) =>
             {
                 FinalCleanup(sourceToken, endLine, spacing);
             };
