@@ -71,6 +71,7 @@ namespace Tring
                 return new ConnectionResult(_request, DNS, Connection, Ping, localInterface, 0, PingTimeMs);
             }
         }
+
         public static (ConnectionStatus status, long timeInMs) PingHost(IPAddress ip)
         {
             using (var ping = new Ping())

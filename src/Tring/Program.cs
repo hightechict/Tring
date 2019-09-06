@@ -130,6 +130,7 @@ namespace Tring
                 }
             });
         }
+
         private static async Task CheckIfEscPress(CancellationTokenSource tokenSource)
         {
             await Task.Run(async () =>

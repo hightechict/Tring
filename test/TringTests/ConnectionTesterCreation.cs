@@ -36,6 +36,7 @@ namespace TringTests
             request.Url.Should().Be("google.nl");
             request.Port.Should().Be(80);
         }
+
         [Theory]
         [InlineData("google.nl:80")]
         [InlineData("google.nl:http")]

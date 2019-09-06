@@ -92,6 +92,7 @@ namespace Tring
                     Console.CursorTop++;
             }
         }
+
         public void SetCancelEventHandler(CancellationTokenSource sourceToken, int endLine)
         {
             Console.CancelKeyPress += (sender, args) =>
@@ -100,10 +101,12 @@ namespace Tring
                 CleanUpConsole(endLine);
             };
         }
+
         private void PrintProtocol(int port)
         {
             Console.Write($"{PortLogic.DetermineProtocolByPort(port),-8} | ");
         }
+
         private void PrintHostName(string url)
         {
             Console.ResetColor();

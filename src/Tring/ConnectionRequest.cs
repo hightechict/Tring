@@ -31,6 +31,7 @@ namespace Tring
             Url = url;
             Port = port;
         }
+
         public static ConnectionRequest Parse(string input)
         {
             ConnectionRequest request;
