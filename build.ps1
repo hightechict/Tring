@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 
     if (-not (Test-Path "built")) {
         New-Item -ItemType Directory "built"
+        New-Item -ItemType Directory "built/exe"
     }
     $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force
 }
@@ -27,6 +28,7 @@ Remove-Item doc/_site -Force -Recurse -ErrorAction SilentlyContinue
 Remove-Item doc/obj -Force -Recurse -ErrorAction SilentlyContinue    
 dotnet clean 
 dotnet restore
+dotnet build .\src\Tring.WinExe\Tring.WinExe.csproj /p:OutputPath="../../built/exe" /p:Configuration="Release"
 dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput='../../built/Tring.xml' /p:CoverletOutputFormat=cobertura
 
 $version = git-flow-version | ConvertFrom-Json
