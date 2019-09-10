@@ -34,6 +34,10 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
     <PackageIconUrl>https://raw.githubusercontent.com/hightechict/DashDashVersion/develop/doc/images/HightechICT.png</PackageIconUrl>
     <PackageTags>TCP;Network</PackageTags>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Tring.Common/Tring.Common.csproj" />

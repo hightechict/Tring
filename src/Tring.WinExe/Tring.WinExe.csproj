@@ -33,6 +33,10 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
     <PackageIconUrl>https://raw.githubusercontent.com/hightechict/DashDashVersion/develop/doc/images/HightechICT.png</PackageIconUrl>
     <PackageTags>TCP;Network</PackageTags>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Tring.Common/Tring.Common.csproj" />
@@ -42,7 +46,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
     <PackageReference Include="ILMerge" Version="3.0.29" GeneratePathProperty="true" />
   </ItemGroup>
 
-  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Release' ">
+  <Target Name="MergeIL" Condition=" '$(Configuration)' == 'Release' " AfterTargets="Build">
     <CreateItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)'=='.dll'">
   	  <Output ItemName="AssembliesToMerge" TaskParameter="Include" />
     </CreateItem>
@@ -50,7 +54,9 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
   	  <ReferenceAssemblies>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2</ReferenceAssemblies>
     </PropertyGroup>-->
     <Message Importance="high" Text="Executing ILMerge...with target platform from $(ReferenceAssemblies)" />
-    <Exec Command="&quot;$(PkgILMerge)\tools\ILMerge.exe&quot; /ndebug /target:exe /out:@(MainAssembly) /internalize &quot;@(IntermediateAssembly)&quot; @(AssembliesToMerge->'&quot;%(FullPath)&quot;', ' ')" />
+    <Message Importance="high" Text="Current directory: $()" />
+    <Exec Command="cd"/>
+    <Exec Command="&quot;$(PkgILMerge)\tools\net452\ILMerge.exe&quot; /ndebug /target:exe /out:@(MainAssembly) /internalize &quot;@(IntermediateAssembly)&quot; @(AssembliesToMerge->'&quot;%(FullPath)&quot;', ' ')" />
     <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
   </Target>
 

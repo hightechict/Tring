@@ -1,6 +1,6 @@
 function New-Package($version) {
     New-SharedAssemblyInfo $version
-    dotnet pack --output ../../built /p:PackageVersion="$($version.FullSemVer)" /p:NoPackageAnalysis=true /p:Configuration=Release
+    dotnet pack --output ../../built --configuration Release /p:PackageVersion="$($version.FullSemVer)" /p:NoPackageAnalysis=true
 } 
 
 function New-SharedAssemblyInfo($version) {
@@ -28,7 +28,7 @@ Remove-Item doc/_site -Force -Recurse -ErrorAction SilentlyContinue
 Remove-Item doc/obj -Force -Recurse -ErrorAction SilentlyContinue    
 dotnet clean 
 dotnet restore
-dotnet build .\src\Tring.WinExe\Tring.WinExe.csproj /p:OutputPath="../../built/exe" /p:Configuration="Release"
+dotnet build --configuration Release .\src\Tring.WinExe\Tring.WinExe.csproj /p:OutputPath="..\..\built\exe" 
 dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput='../../built/Tring.xml' /p:CoverletOutputFormat=cobertura
 
 $version = git-flow-version | ConvertFrom-Json
