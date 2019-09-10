@@ -21,6 +21,6 @@ namespace Tring
 {
     public class Program
     {
-        public static int Main(string[] args) => Tring.Common.Program.Main(args);
+        public static int Main(string[] args) => Common.Program.Main(args);
     }
 }
