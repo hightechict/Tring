@@ -21,7 +21,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Linq;
 
-namespace Tring
+namespace Tring.Common
 {
     internal class ConnectionTester
     {
