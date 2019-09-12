@@ -22,6 +22,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
     <IsPackable>false</IsPackable>
     <TargetFramework>net472</TargetFramework>
     <Title>Tring</Title>
+    <TargetName>tring</TargetName>
     <Description>Tring can be used to quickly test a TCP connection.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
