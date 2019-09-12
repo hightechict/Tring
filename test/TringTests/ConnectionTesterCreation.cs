@@ -18,7 +18,7 @@
 using FluentAssertions;
 using System;
 using System.Net;
-using Tring;
+using Tring.Common;
 using Xunit;
 
 namespace TringTests

@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tring", "src\Tring\Tring.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TringTests", "test\TringTests\TringTests.csproj", "{D797D4C3-C8F8-4025-89BE-7C4C300B4EAD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tring.Common", "src\Tring.Common\Tring.Common.csproj", "{8EC229AB-1163-4631-90F3-B28491C03123}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tring.WinExe", "src\Tring.WinExe\Tring.WinExe.csproj", "{3DED42EB-F8EC-4011-9A10-B562A72F96A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{D797D4C3-C8F8-4025-89BE-7C4C300B4EAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D797D4C3-C8F8-4025-89BE-7C4C300B4EAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D797D4C3-C8F8-4025-89BE-7C4C300B4EAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EC229AB-1163-4631-90F3-B28491C03123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EC229AB-1163-4631-90F3-B28491C03123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EC229AB-1163-4631-90F3-B28491C03123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EC229AB-1163-4631-90F3-B28491C03123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DED42EB-F8EC-4011-9A10-B562A72F96A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DED42EB-F8EC-4011-9A10-B562A72F96A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DED42EB-F8EC-4011-9A10-B562A72F96A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DED42EB-F8EC-4011-9A10-B562A72F96A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

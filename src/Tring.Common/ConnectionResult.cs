@@ -16,9 +16,9 @@
 //along with Tring.If not, see<https://www.gnu.org/licenses/>.
 
 using System;
-using static Tring.ConnectionTester;
+using static Tring.Common.ConnectionTester;
 
-namespace Tring
+namespace Tring.Common
 {
     class ConnectionResult
     {
