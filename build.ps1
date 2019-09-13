@@ -1,5 +1,4 @@
 function New-Package($version) {
-    New-SharedAssemblyInfo $version
     dotnet pack --output ../../built --configuration Release /p:PackageVersion="$($version.FullSemVer)" /p:NoPackageAnalysis=true
 } 
 
@@ -21,16 +20,18 @@ using System.Runtime.InteropServices;
 }
 
 
+$version = git-flow-version | ConvertFrom-Json
+Write-Host "calculated version:"
+$version | Format-List
+
 Remove-Item built -Force -Recurse -ErrorAction SilentlyContinue
 Remove-Item doc/index.md -Force -Recurse -ErrorAction SilentlyContinue  
 Remove-Item doc/_site -Force -Recurse -ErrorAction SilentlyContinue
 Remove-Item doc/obj -Force -Recurse -ErrorAction SilentlyContinue    
 dotnet clean 
 dotnet restore
+New-SharedAssemblyInfo $version
 dotnet build --configuration Release .\src\Tring.WinExe\Tring.WinExe.csproj /p:OutputPath="..\..\built" 
 dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput='../../built/Tring.xml' /p:CoverletOutputFormat=cobertura
 
-$version = git-flow-version | ConvertFrom-Json
-Write-Host "calculated version:"
-$version | Format-List
 New-Package $version
