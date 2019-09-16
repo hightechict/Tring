@@ -1,5 +1,5 @@
 function New-Package($version) {
-    dotnet pack --output ../../built --configuration Release /p:PackageVersion="$($version.FullSemVer)" /p:NoPackageAnalysis=true
+    dotnet pack --output ../../built --configuration Release /p:PackageVersion="$($version.FullSemVer)"
 } 
 
 function New-SharedAssemblyInfo($version) {

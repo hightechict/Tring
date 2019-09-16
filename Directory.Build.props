@@ -1,6 +1,7 @@
 <Project>
 
   <PropertyGroup>
+    <NoWarn>NU5105</NoWarn>
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
