@@ -39,15 +39,16 @@ namespace Tring.Common
             var arguments = app.Argument("arguments", "Enter the ip or url you wish to test. Multiple host entered space separated.", true);
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
             var optionIPv6 = app.Option("-6|--ipv6", "Set the program to use IPv6 for dns requests.", CommandOptionType.NoValue);
+            var cancelationSource = new CancellationTokenSource();
 
-            app.OnExecute(async () =>
+            app.OnExecuteAsync(async (cancelationToken) =>
             {
                 switch (arguments.Values.Count)
                 {
                     case 0:
                         throw new ArgumentException("No arguments provided: please provide only a host:port or host:protocol.");
                     default:
-                        var cancelationSource = new CancellationTokenSource();
+                        
                         var watch = optionWatch.HasValue();
                         var IPv6 = optionIPv6.HasValue();
                         await SetupConnections(optionWatch.HasValue(), optionIPv6.HasValue(), arguments.Values, cancelationSource);
@@ -58,8 +59,8 @@ namespace Tring.Common
             });
             try
             {
-                var exiCode = app.Execute(args);
-                return exiCode;
+                var exiCode = app.ExecuteAsync(args, cancelationSource.Token);
+                return exiCode.Result;
             }
             catch (AggregateException exception)
             {
@@ -80,6 +81,7 @@ namespace Tring.Common
             }
             finally
             {
+                cancelationSource.Dispose();
                 app.Dispose();
             }
         }

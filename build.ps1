@@ -31,7 +31,7 @@ Remove-Item doc/obj -Force -Recurse -ErrorAction SilentlyContinue
 dotnet clean 
 dotnet restore
 New-SharedAssemblyInfo $version
-dotnet build --configuration Release .\src\Tring.WinExe\Tring.WinExe.csproj /p:OutputPath="..\..\built" 
+dotnet build --configuration Release .\src\Tring\Tring.csproj /p:OutputPath="..\..\built" 
 dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput='../../built/Tring.xml' /p:CoverletOutputFormat=cobertura
 
 New-Package $version

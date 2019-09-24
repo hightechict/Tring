@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Tring": {
+      "commandName": "Project",
+      "commandLineArgs": "google.nl:80 google.nl:443 facebook.com:80 -w"
+    }
+  }
+}

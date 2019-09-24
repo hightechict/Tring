@@ -19,7 +19,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <Title>Tring</Title>
     <Description>Tring can be used to quickly test a TCP connection.</Description>
     <IsPackable>true</IsPackable>
@@ -42,5 +42,19 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
   <ItemGroup>
     <ProjectReference Include="../Tring.Common/Tring.Common.csproj" />
   </ItemGroup>
+
+  <Target Name="MergeIL" Condition=" '$(Configuration)' == 'Release' " AfterTargets="Build">
+    <CreateItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)'=='.dll'">
+      <Output ItemName="AssembliesToMerge" TaskParameter="Include" />
+    </CreateItem>
+    <!--    <PropertyGroup>
+        <ReferenceAssemblies>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2</ReferenceAssemblies>
+    </PropertyGroup>-->
+    <Message Importance="high" Text="Executing ILMerge...with target platform from $(ReferenceAssemblies)" />
+    <Message Importance="high" Text="Current directory: $()" />
+    <Exec Command="cd" />
+    <Exec Command="&quot;$(PkgILMerge)\tools\net452\ILMerge.exe&quot; /ndebug /target:exe /out:@(MainAssembly) /internalize &quot;@(IntermediateAssembly)&quot; @(AssembliesToMerge->'&quot;%(FullPath)&quot;', ' ')" />
+    <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
+  </Target>
 
 </Project>
