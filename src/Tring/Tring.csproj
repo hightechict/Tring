@@ -27,17 +27,21 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/hightechict/Tring</RepositoryUrl>
-	<PackageProjectUrl>https://github.com/hightechict/Tring</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/hightechict/Tring</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <Copyright>Copyright 2019 Hightech ICT</Copyright>
     <Authors>Hightech ICT and authors</Authors>
-    <PackageIcon>https://raw.githubusercontent.com/hightechict/DashDashVersion/develop/doc/images/HightechICT.png</PackageIcon>
+    <PackageIcon>HightechICT.png</PackageIcon>
     <PackageTags>TCP;Network</PackageTags>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="HightechICT.png" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Tring.Common/Tring.Common.csproj" />
