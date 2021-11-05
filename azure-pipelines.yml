@@ -128,7 +128,7 @@ steps:
   displayName: Publish code coverage
 
 - task: PowerShell@2
-  condition: ne(variables['Build.SourceBranchName'], 'merge')
+  condition: and(eq(variables.imageName, 'windows-latest'),ne(variables['Build.SourceBranchName'], 'merge'))
   inputs:
     targetType: 'inline'
     script: |
@@ -172,7 +172,7 @@ steps:
   displayName: Creating packages dotnet task
 
 - task: PowerShell@2
-  condition: and(eq(variables.imageName, 'ubuntu-latest'),ne(variables['Build.SourceBranchName'], 'merge'))
+  condition: and(eq(variables.imageName, 'windows-latest'),ne(variables['Build.SourceBranchName'], 'merge'))
   inputs:
     targetType: 'inline'
     script: |
