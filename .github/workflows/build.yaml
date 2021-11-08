@@ -21,9 +21,9 @@ jobs:
         with:
           dotnet-version: 5.0.x
       - name: Install git-flow-version
-        run: dotnet tool upgrade --global git-flow-version
+        run: dotnet tool update --global git-flow-version
       - name: Install Powershell
-        run: dotnet tool upgrade --global PowerShell --version 7.1.5      
+        run: dotnet tool update --global PowerShell --version 7.1.5      
       - name: Install dependencies
         run: dotnet restore
       - name: Build
