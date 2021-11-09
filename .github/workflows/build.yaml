@@ -33,12 +33,12 @@ jobs:
         run: | 
           echo "${GITHUB_REF##*/}"
           echo "${GITHUB_REF}"
-          $version = /home/docker/.dotnet/tools/git-flow-version --branch ${GITHUB_REF##*/}
-          echo  $version
-          Write-Host "calculated version:"
-          $version | Format-List
-          echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
-          echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
-          echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
+          #$version = /home/docker/.dotnet/tools/git-flow-version --branch ${GITHUB_REF##*/}
+          #echo  $version
+          #Write-Host "calculated version:"
+          #$version | Format-List
+          #echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
+          #echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
+          #echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
