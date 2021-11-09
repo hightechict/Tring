@@ -31,7 +31,7 @@ jobs:
       - name: Calculating version
         shell: pwsh
         run: | 
-          $version= /home/docker/.dotnet/tools/git-flow-version --branch $env:BUILD_SOURCEBRANCHNAME | ConvertFrom-Json
+          $version= /home/docker/.dotnet/tools/git-flow-version --branch ${GITHUB_REF##*/} | ConvertFrom-Json
           Write-Host "calculated version:"
           $version | Format-List
           echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
