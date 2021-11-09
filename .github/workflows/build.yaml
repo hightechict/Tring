@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: self-hosted    
+    runs-on: [self-hosted, linux, net50, pwsh]    
 #    strategy:
 #      matrix:
 #        dotnet-version: ['3.0', '3.1.x', '5.0.x' ]
@@ -28,5 +28,14 @@ jobs:
         run: dotnet build --configuration Release --no-restore src/Tring
       - name: Test
         run: dotnet test --no-restore --verbosity normal --configuration Release test/TringTests
+      - name: Calculating version
+        shell: pwsh
+        run: | 
+          $version= git-flow-version --branch $env:BUILD_SOURCEBRANCHNAME | ConvertFrom-Json
+          Write-Host "calculated version:"
+          $version | Format-List
+          echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
+          echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
+          echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
