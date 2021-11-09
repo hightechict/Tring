@@ -39,15 +39,6 @@ steps:
     script: 'choco install codecov'
   displayName: Install codecov
 
-- task: DotNetCoreInstaller@0
-  inputs:
-    packageType: 'sdk'
-    version: '2.2.401'
-  env:
-   DOTNET_CLI_TELEMETRY_OPTOUT: false
-   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  displayName: Install .NET Core 2 latest
-
 - task: UseDotNet@2
   displayName: Install .NET Core 3.1.414 SDK
   inputs:
