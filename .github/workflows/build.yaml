@@ -31,9 +31,9 @@ jobs:
       - name: Calculating version
         shell: pwsh
         run: | 
-          Write-Host "${GITHUB_REF##*/}"
-          Write-Host "$GITHUB_REF_NAME"
-          Write-Host "$GITHUB_REF"
+          echo "$ENV:{GITHUB_REF##*/}"
+          echo "$ENV:GITHUB_REF_NAME"
+          echo "$ENV:GITHUB_REF"
           #$version = /home/docker/.dotnet/tools/git-flow-version --branch ${GITHUB_REF##*/}
           #echo  $version
           #Write-Host "calculated version:"
