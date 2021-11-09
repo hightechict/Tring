@@ -16,10 +16,6 @@ jobs:
         uses: actions/setup-dotnet@v1.7.2
         with:
           dotnet-version: 3.1.x
-      - name: Setup .NET SDK 6.0
-        uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: 6.0.x
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version
       - name: Install dependencies
