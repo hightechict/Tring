@@ -29,10 +29,8 @@ jobs:
           echo "$SemVer"
           echo "$FullSemVer"
           echo "$AssemblyVersion"
-          echo "[System.Environment]::SetEnvironmentVariable('SemVer','$SemVer')"
-          #echo "[System.Environment]::SetEnvironmentVariable('SemVer', $version.SemVer)"
-          #echo "[System.Environment]::SetEnvironmentVariable('FullSemVer','$version.FullSemVer')"
-          #echo "[System.Environment]::SetEnvironmentVariable('AssemblyVersion','$version.AssemblyVersion')"
+          Write-Output "::set-env name=SemVer::$SemVer"
+          Write-Output "::set-env name=FullSemVer::$version.FullSemVer"
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |
