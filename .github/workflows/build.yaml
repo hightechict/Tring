@@ -30,7 +30,8 @@ jobs:
           echo "$FullSemVer"
           echo "$AssemblyVersion"
           $env:FOO ??= 'bar'
-          echo "[Environment]::SetEnvironmentVariable("SemVer", "$SemVer", "Machine")"
+          echo "::set-env name=SemVer::$SemVer"
+
 
           
           $envVars = Get-ChildItem env: | out-string
