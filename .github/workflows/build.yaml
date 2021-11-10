@@ -30,6 +30,7 @@ jobs:
           echo "$FullSemVer"
           echo "$AssemblyVersion"
           $env:FOO ??= 'bar'
+          Set-PersistentEnvironmentVariable -Name "SemVer" -Value "$SemVer"; Write-Host $env:SemVer
           
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"    
