@@ -29,13 +29,9 @@ jobs:
           $SemVer = $version.SemVer
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
-          $env:SemVer ??= "$SemVer"
-          $env:FullSemVer ??= "$FullSemVer"
-          $env:AssemblyVersion ??= "$AssemblyVersion"
-
-          
-          $envVars = Get-ChildItem env:GITHUB_ENV | Format-List | out-string
-          echo  "$envVars"   
+          $env:SemVer = "$SemVer"
+          $env:FullSemVer = "$FullSemVer"
+          $env:AssemblyVersion = "$AssemblyVersion"
           
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"   
