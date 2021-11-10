@@ -22,6 +22,7 @@ jobs:
           $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
           $version | Format-List
+          echo "SemVer=$version.SemVer" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           echo "[System.Environment]::SetEnvironmentVariable('testVar','testTest')"
           echo "[System.Environment]::SetEnvironmentVariable('SemVer', $version.SemVer)"
           echo "[System.Environment]::SetEnvironmentVariable('FullSemVer','$version.FullSemVer')"
