@@ -17,6 +17,7 @@ jobs:
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
       - name: Calculating version
+        shell: pwsh
         run: | 
           $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
@@ -29,7 +30,8 @@ jobs:
           echo "$FullSemVer"
           echo "$AssemblyVersion"
           echo "[Environment]::SetEnvironmentVariable("SemVer", "$SemVer")"
-
+        env: 
+          TEST_ENV: 'Test'
           
       - name: Display environment variables (debug step)
         shell: pwsh
