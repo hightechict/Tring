@@ -29,8 +29,13 @@ jobs:
           echo "$SemVer"
           echo "$FullSemVer"
           echo "$AssemblyVersion"
-          Write-Output "::set-env name=SemVer::$SemVer"
-          Write-Output "::set-env name=FullSemVer::$version.FullSemVer"
+          echo "{SemVer}={$SemVer}" >> $GITHUB_ENV
+          echo "{FullSemVer}={$FullSemVer}" >> $GITHUB_ENV
+          echo "{AssemblyVersion}={$AssemblyVersion}" >> $GITHUB_ENV    
+          echo "${{ env.SemVer }}"
+          echo "${{ env.FullSemVer }}"
+          echo "${{ env.AssemblyVersion }}"
+          
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |
