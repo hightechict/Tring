@@ -34,6 +34,11 @@ jobs:
           echo "$AssemblyVersion"
           
           $env:FOO ??= 'bar'
+          echo "::set-output name=FOO2::bar2"
+          
+          $envVars = Get-ChildItem env:GITHUB_ENV | out-string
+          echo  "$envVars"   
+          
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"   
       - name: Display environment variables (debug step)
