@@ -17,23 +17,16 @@ jobs:
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
       - name: Calculating version
-
+        shell: pwsh
         run: | 
-          $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME 
+          $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
+          echo  "$ENV:version"
           Write-Host "calculated version:"
-          $version 
-          
-          $SemVer = $version.SemVer
-          $FullSemVer = $version.FullSemVer
-          $AssemblyVersion = $version.AssemblyVersion
-          echo "$SemVer"
-          echo "$FullSemVer"
-          echo "$AssemblyVersion"
-          
-          $env:FOO ??= 'bar'
-          $envVars = Get-ChildItem env: | out-string
-          
-          echo  "$envVars"    
+          $version | Format-List
+          echo  "$ENV:version"
+          #echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
+          #echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
+          #echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |
