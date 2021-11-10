@@ -23,7 +23,7 @@ jobs:
           Write-Host "calculated version:"
           $version | Format-List
           
-          $SemVer = $version.SemVer
+          echo "$version.SemVer"
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
           echo "$SemVer"
@@ -37,9 +37,6 @@ jobs:
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |
-          $GitEnv = Get-ChildItem env:GITHUB_ENV | out-string
-          echo  "$GitEnv"      
-          
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"      
       - name: Setup .NET Core SDK 3.1
