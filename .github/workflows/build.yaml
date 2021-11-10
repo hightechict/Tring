@@ -29,10 +29,16 @@ jobs:
           $SemVer = $version.SemVer
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
-          $env:SemVer = "$SemVer"
-          $env:FullSemVer = "$FullSemVer"
-          $env:AssemblyVersion = "$AssemblyVersion"
           
+          export FOO=bar
+          echo "::set-env name=FOO::$FOO"
+          export SemVer = "$SemVer"
+          echo "::set-env name=SemVer::$SemVer"
+          export FullSemVer = "$FullSemVer"
+          echo "::set-env name=FullSemVer::$FullSemVer"          
+          export AssemblyVersion = "$AssemblyVersion"
+          echo "::set-env name=AssemblyVersion::$AssemblyVersion"     
+           
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"   
       - name: Display environment variables (debug step)
