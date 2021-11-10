@@ -32,9 +32,9 @@ jobs:
           echo "{SemVer}={$SemVer}" >> $GITHUB_ENV
           echo "{FullSemVer}={$FullSemVer}" >> $GITHUB_ENV
           echo "{AssemblyVersion}={$AssemblyVersion}" >> $GITHUB_ENV    
-          echo "${{ env.SemVer }}"
-          echo "${{ env.FullSemVer }}"
-          echo "${{ env.AssemblyVersion }}"
+          echo "$env.SemVer"
+          echo "$env.FullSemVer"
+          echo "$env.AssemblyVersion"
           
       - name: Display environment variables (debug step)
         shell: pwsh
