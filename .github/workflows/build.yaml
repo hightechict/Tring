@@ -1,7 +1,10 @@
 name: dotnet package
 
 on: [push]
-
+env:
+  SemVer: "0"
+  FullSemVer: "0"
+  AssemblyVersion: "0"
 jobs:
   build:
 
@@ -36,7 +39,7 @@ jobs:
           $env:FOO ??= 'bar'
           echo "::set-output name=FOO2::bar2"
           
-          $envVars = Get-ChildItem env:GITHUB_ENV | out-string
+          $envVars = Get-ChildItem env:GITHUB_ENV | Format-List
           echo  "$envVars"   
           
           $envVars = Get-ChildItem env: | out-string
