@@ -29,7 +29,13 @@ jobs:
           echo "[System.Environment]::SetEnvironmentVariable('AssemblyVersion','$version.AssemblyVersion')"
       - name: Display environment variables (debug step)
         shell: pwsh
-        run: |         
+        run: |
+          $test = "$ENV:GITHUB_ENV" | Format-List
+          echo "$test"
+          
+          $GitEnv = Get-ChildItem env:GITHUB_ENV | out-string
+          echo  "$GitEnv"      
+          
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"      
       - name: Setup .NET Core SDK 3.1
