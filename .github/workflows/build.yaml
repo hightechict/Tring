@@ -29,12 +29,10 @@ jobs:
           echo "$SemVer"
           echo "$FullSemVer"
           echo "$AssemblyVersion"
-          echo "[Environment]::SetEnvironmentVariable("SemVer", "$SemVer")"
-          $env:TEST_ENV_VAR1 = "TESTvar"
-          echo "$env:TEST_ENV_VAR1 = 'TESTvar'"
-     
-        env: 
-          TEST_ENV_VAR1: "Test"
+          $env:FOO ??= 'bar'
+          
+          $envVars = Get-ChildItem env: | out-string
+          echo  "$envVars"    
           
       - name: Display environment variables (debug step)
         shell: pwsh
