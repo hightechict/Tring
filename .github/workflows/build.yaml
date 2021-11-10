@@ -25,21 +25,16 @@ jobs:
           $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
           $version | Format-List
-          echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
-          echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
-          echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
           
           $SemVer = $version.SemVer
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
-          echo "$SemVer"
-          echo "$FullSemVer"
-          echo "$AssemblyVersion"
+          $env:SemVer "$SemVer"
+          $env:FullSemVer "$FullSemVer"
+          $env:AssemblyVersion "$AssemblyVersion"
+
           
-          $env:FOO ??= 'bar'
-          echo "::set-output name=FOO2::bar2"
-          
-          $envVars = Get-ChildItem env:GITHUB_ENV | Format-List
+          $envVars = Get-ChildItem env:GITHUB_ENV | Format-List | out-string
           echo  "$envVars"   
           
           $envVars = Get-ChildItem env: | out-string
