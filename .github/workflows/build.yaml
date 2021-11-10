@@ -30,13 +30,13 @@ jobs:
           echo "$FullSemVer"
           echo "$AssemblyVersion"
           $env:FOO ??= 'bar'
-          echo "::save-state name=FOO::foovalue"
+          echo "action_state=yellow" >> $GITHUB_ENV
 
-
-          
           $envVars = Get-ChildItem env: | out-string
           echo  "$envVars"    
-          
+      - name: Display environment variables (debug step)
+        run: |
+           echo "${{ env.action_state }}" # This will output 'yellow'        
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |
