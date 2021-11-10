@@ -28,14 +28,9 @@ jobs:
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
           
-          echo "::set-env name=SemVer::$version.SemVer"
+          echo "::set-env name=SemVer::$SemVer"
           echo "::set-env name=FullSemVer::$FullSemVer"          
-          echo "::set-env name=AssemblyVersion::$AssemblyVersion"     
-      - name: Display environment variables (debug step)
-        shell: pwsh
-        run: |
-          $envVars = Get-ChildItem env: | out-string
-          echo  "$envVars"      
+          echo "::set-env name=AssemblyVersion::$AssemblyVersion"       
       - name: Setup .NET Core SDK 3.1
         uses: actions/setup-dotnet@v1.7.2
         with:
@@ -46,5 +41,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore src/Tring
       - name: Test
         run: dotnet test --no-restore --verbosity normal --configuration Release test/TringTests
+      - name: Run Codecov
+        uses: codecov/codecov-action@v2            
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
