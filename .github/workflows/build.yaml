@@ -19,15 +19,16 @@ jobs:
       - name: Calculating version
         shell: pwsh
         run: | 
-          #$version = /home/docker/.dotnet/tools/git-flow-version --branch ${ENV:GITHUB_REF##*/} | ConvertFrom-Json
-          #Write-Host "calculated version:"
-          #$version | Format-List
+          $version = /home/docker/.dotnet/tools/git-flow-version --branch ${ENV:GITHUB_REF##*/} | ConvertFrom-Json
+          Write-Host "calculated version:"
+          $version | Format-List
+          echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
+          echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
+          echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
+          
           $envVars = Get-ChildItem env: | out-string
           echo  "$ENV:version"
-          echo "$envVars"
-          #echo "##vso[task.setvariable variable=SemVer]$($version.SemVer)"
-          #echo "##vso[task.setvariable variable=FullSemVer]$($version.FullSemVer)"
-          #echo "##vso[task.setvariable variable=AssemblyVersion]$($version.AssemblyVersion)"
+          echo  "$envVars"
       - name: Setup .NET Core SDK 3.1
         uses: actions/setup-dotnet@v1.7.2
         with:
