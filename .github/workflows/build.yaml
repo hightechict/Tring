@@ -41,8 +41,5 @@ jobs:
         run: dotnet build --configuration Release --no-restore src/Tring
       - name: Test
         run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../built/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
-      - name: Run coverlet
-        uses: b3b00/coverlet-action@1.1.7
-        
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
