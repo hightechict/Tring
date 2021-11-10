@@ -23,7 +23,7 @@ jobs:
           Write-Host "calculated version:"
           $version | Format-List
           
-          echo "$version.SemVer"
+          echo "$version["SemVer"]"
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
           echo "$SemVer"
