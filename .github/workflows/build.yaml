@@ -22,9 +22,9 @@ jobs:
           $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
           $:version | Format-List
-          $env:VERSION_SEMVER = "test"
-          $env:FullSemVer = "$version.FullSemVer"
-          $env:AssemblyVersion = "$version.AssemblyVersion"
+          [System.Environment]::SetEnvironmentVariable('SemVer','$version.SemVer')
+          [System.Environment]::SetEnvironmentVariable('FullSemVer','$version.FullSemVer')
+          [System.Environment]::SetEnvironmentVariable('AssemblyVersion','$version.AssemblyVersion')
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |         
