@@ -30,13 +30,10 @@ jobs:
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
           
-          export FOO=bar
-          echo "::set-env name=FOO::$FOO"
-          export SemVer = "$SemVer"
           echo "::set-env name=SemVer::$SemVer"
-          export FullSemVer = "$FullSemVer"
+
           echo "::set-env name=FullSemVer::$FullSemVer"          
-          export AssemblyVersion = "$AssemblyVersion"
+
           echo "::set-env name=AssemblyVersion::$AssemblyVersion"     
            
           $envVars = Get-ChildItem env: | out-string
