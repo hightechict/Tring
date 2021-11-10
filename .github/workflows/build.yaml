@@ -5,6 +5,7 @@ env:
   SemVer: "0"
   FullSemVer: "0"
   AssemblyVersion: "0"
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 jobs:
   build:
 
