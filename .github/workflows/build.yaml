@@ -28,14 +28,9 @@ jobs:
           $FullSemVer = $version.FullSemVer
           $AssemblyVersion = $version.AssemblyVersion
           
-          echo "::set-env name=SemVer::$SemVer"
-
+          echo "::set-env name=SemVer::$version.SemVer"
           echo "::set-env name=FullSemVer::$FullSemVer"          
-
           echo "::set-env name=AssemblyVersion::$AssemblyVersion"     
-           
-          $envVars = Get-ChildItem env: | out-string
-          echo  "$envVars"   
       - name: Display environment variables (debug step)
         shell: pwsh
         run: |
