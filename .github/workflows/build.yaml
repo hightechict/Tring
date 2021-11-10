@@ -32,8 +32,7 @@ jobs:
           echo "[Environment]::SetEnvironmentVariable("SemVer", "$SemVer")"
           $env:TEST_ENV_VAR1 = "TESTvar"
           echo "$env:TEST_ENV_VAR1 = 'TESTvar'"
-          Add-Content -Path $Profile.CurrentUserAllHosts -Value '$Env:FOO = "hello world"'
-          
+     
         env: 
           TEST_ENV_VAR1: "Test"
           
