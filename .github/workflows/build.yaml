@@ -37,8 +37,7 @@ jobs:
       - name: Display environment variables (debug step)
         run: |
            echo "$env:action_state" # This will output 'yellow'
-           $tmp = $ENV:GITHUB_ENV | Format-List
-           echo "$tmp"
+           $ENV:GITHUB_ENV | Format-List
            
       - name: Display environment variables (debug step)
         shell: pwsh
