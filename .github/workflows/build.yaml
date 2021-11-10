@@ -19,7 +19,7 @@ jobs:
       - name: Calculating version
         shell: pwsh
         run: | 
-          $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF | ConvertFrom-Json
+          $version = /home/docker/.dotnet/tools/git-flow-version --branch ${ENV:GITHUB_REF##*/} | ConvertFrom-Json
           Write-Host "calculated version:"
           $version | Format-List
           echo  "$ENV:version"
