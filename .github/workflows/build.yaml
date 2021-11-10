@@ -30,7 +30,7 @@ jobs:
           echo "$FullSemVer"
           echo "$AssemblyVersion"
           $env:FOO ??= 'bar'
-          echo "$SemVer" | Out-File -FilePath $env:SemVer -Encoding utf8 -Append
+          echo "::save-state name=FOO::foovalue"
 
 
           
