@@ -40,7 +40,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore src/Tring
       - name: Test
-        run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../built/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
+        run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=./built/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
       - name: Publish code coverage
         uses: codecov/codecov-action@v2
         with:
