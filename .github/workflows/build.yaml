@@ -45,8 +45,5 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           files: ./built/Tring.xml
-          token: $env:CodecovToken
-        env:
-          CodecovToken: $(Codecov)
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
