@@ -49,5 +49,5 @@ jobs:
         with:
           files: ./built/Tring.xml
 #          token: ba10016d-3b62-44b5-ad91-59c98f6d1213
-#      - name: Pack
-#        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
+      - name: Pack
+        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
