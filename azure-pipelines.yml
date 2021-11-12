@@ -112,7 +112,7 @@ steps:
   inputs:
     targetType: inline
     pwsh: true
-    script: 'codecov -f "./built/Tring.net60.xml" -t $env:CodecovToken'
+    script: 'codecov -f "./built/Tring.net6.0.xml" -t $env:CodecovToken'
   env:
     CodecovToken: $(Codecov)
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
