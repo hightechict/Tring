@@ -17,6 +17,8 @@ jobs:
           fetch-depth: 0
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
+      - name: Branch name
+        run: echo running on branch ${GITHUB_REF##*/}      
       - name: Calculating version
         shell: pwsh
         run: | 
