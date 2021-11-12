@@ -17,8 +17,6 @@ jobs:
           fetch-depth: 0
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
-      - name: Branch name
-        run: echo running on branch ${GITHUB_REF##*/}      
       - name: Calculating version
         shell: pwsh
         run: | 
@@ -50,6 +48,6 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           files: ./built/Tring.xml
-          token: ba10016d-3b62-44b5-ad91-59c98f6d1213
-      - name: Pack
-        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
+#          token: ba10016d-3b62-44b5-ad91-59c98f6d1213
+#      - name: Pack
+#        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring
