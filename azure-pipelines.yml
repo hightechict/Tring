@@ -65,7 +65,7 @@ steps:
   inputs:
     targetType: inline
     pwsh: true
-    script: 'dotnet tool install --global git-flow-version --version 0.17.0-dev.47'
+    script: 'dotnet tool install --global git-flow-version --version 0.17.0-rc.1'
   env:
    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   displayName: Install git-flow-version
