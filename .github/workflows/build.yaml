@@ -20,7 +20,8 @@ jobs:
       - name: Calculating version
         shell: pwsh
         run: | 
-          echo "Get-ChildItem env:"
+          $vars = Get-ChildItem env:
+          echo "$vars"
         
           $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
