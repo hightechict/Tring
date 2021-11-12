@@ -103,9 +103,20 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    arguments: '/p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=''../../built/Tring.xml'' /p:CoverletOutputFormat=cobertura'
+    arguments: '/p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../built/Tring.xml /p:CoverletOutputFormat=cobertura'
     testRunTitle: 'Running tests'
   displayName: Running Tests
+
+- task: PowerShell@2
+  condition: and(eq(variables.imageName, 'windows-latest'),ne(variables['Build.SourceBranchName'], 'merge'))
+  inputs:
+    targetType: inline
+    pwsh: true
+    script: 'gci ./built'
+  env:
+    CodecovToken: $(Codecov)
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  displayName: Publish code coverage Prep
 
 - task: PowerShell@2
   condition: and(eq(variables.imageName, 'windows-latest'),ne(variables['Build.SourceBranchName'], 'merge'))
