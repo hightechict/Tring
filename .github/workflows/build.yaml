@@ -66,10 +66,11 @@ jobs:
       - uses: pCYSl5EDgo/cat@master
         name: cat file
         with:
-          path: $HOME/.nuget/NuGet/NuGet.Config       
-      - name: Pushing NuGet package
-        run: |
+          path: ~/.nuget/NuGet/NuGet.Config       
+      - name: Show env vars
+        shell: pwsh
+        run: |          
           $vars = Get-ChildItem env:  | Out-String
           echo "$vars"
-          
-          #dotnet nuget push *.nupkg --api-key --no-symbols true --source https://api.nuget.org/v3/index.json
+      - name: Pushing NuGet package
+        #run: dotnet nuget push *.nupkg --api-key --no-symbols true --source https://api.nuget.org/v3/index.json
