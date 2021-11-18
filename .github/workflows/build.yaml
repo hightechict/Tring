@@ -63,14 +63,10 @@ jobs:
           $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
-      - uses: pCYSl5EDgo/cat@master
-        name: cat file
-        with:
-          path: ~/.nuget/NuGet/NuGet.Config       
-      - name: Show env vars
-        shell: pwsh
-        run: |          
-          $vars = Get-ChildItem env:  | Out-String
-          echo "$vars"
-      #- name: Pushing NuGet package
-      #  run: dotnet nuget push *.nupkg --api-key --no-symbols true --source https://api.nuget.org/v3/index.json
+#      - name: Show env vars
+#        shell: pwsh
+#        run: |          
+#          $vars = Get-ChildItem env:  | Out-String
+#          echo "$vars"
+      - name: Pushing NuGet package
+        run: dotnet nuget push *.nupkg --api-key $HTI_NUGET_APIKEY --no-symbols true --source https://api.nuget.org/v3/index.json
