@@ -69,4 +69,4 @@ jobs:
 #          $vars = Get-ChildItem env:  | Out-String
 #          echo "$vars"
       - name: Pushing NuGet package
-        run: dotnet nuget push src/Tring/*.nupkg --api-key $HTI_NUGET_APIKEY --no-symbols true --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "**/*.nupkg" --api-key $HTI_NUGET_APIKEY --no-symbols true --source https://api.nuget.org/v3/index.json
