@@ -62,7 +62,7 @@ jobs:
           "@
           $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force
       - name: Pack
-        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion="$ENV:FullSemVer"
+        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
       - uses: pCYSl5EDgo/cat@master
         name: cat file
         with:
