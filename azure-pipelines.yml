@@ -112,17 +112,6 @@ steps:
   inputs:
     targetType: inline
     pwsh: true
-    script: 'gci ./built'
-  env:
-    CodecovToken: $(Codecov)
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  displayName: Publish code coverage Prep
-
-- task: PowerShell@2
-  condition: and(eq(variables.imageName, 'windows-latest'),ne(variables['Build.SourceBranchName'], 'merge'))
-  inputs:
-    targetType: inline
-    pwsh: true
     script: 'codecov -f "./built/Tring.net6.0.xml" -t $env:CodecovToken'
   env:
     CodecovToken: $(Codecov)
