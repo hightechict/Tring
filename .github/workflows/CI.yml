@@ -1,4 +1,4 @@
-name: dotnet package
+name: CI
 on: [push]
 #  push:
 #    branches: [master, develop, release]
