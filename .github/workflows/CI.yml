@@ -1,8 +1,5 @@
 name: CI
 on: [push]
-#  push:
-#    branches: [master, develop, release]
-#    pull_request:
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
   # to allow set environment variables
@@ -50,8 +47,8 @@ jobs:
           $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force               
       - name: Pack
         run: dotnet pack --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
-      - name: Pushing NuGet package
-        run: dotnet nuget push "**/*.nupkg" --api-key ${{secrets.HTI_NUGET_APIKEY}} --no-symbols true --source https://api.nuget.org/v3/index.json		
+#      - name: Pushing NuGet package
+#        run: dotnet nuget push "**/*.nupkg" --api-key ${{secrets.HTI_NUGET_APIKEY}} --no-symbols true --source https://api.nuget.org/v3/index.json		
 #  test:
 #    name: Test #/ ${{ matrix.os }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
 #	runs-on: [self-hosted, linux, net60, pwsh] 
