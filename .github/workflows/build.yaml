@@ -100,10 +100,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0	
+          fetch-depth: 0
+      - name: Install dependencies
+        run: dotnet restore		           
       - name: Run Test
-        run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../built/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
+        run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../test/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
       - name: Publish coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
-          files: ./built/Tring.netcoreapp3.1.xml,./Tring.net6.0.xml
+          files: ./test/Tring.netcoreapp3.1.xml,./Tring.net6.0.xml
