@@ -5,6 +5,7 @@ on: [push]
 #    pull_request:
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
+  # to allow set environment variables
 jobs:
   build:
     name: Build
@@ -13,17 +14,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0	
+          fetch-depth: 0
+          #fetch-depth: 0 to fetch all history for all branches and tags
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
-      - name: Install .NET SDK 3.1
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 3.1.x
-      - name: Install dependencies
-        run: dotnet restore		  
-      - name: Build
-        run: dotnet build --configuration Release --no-restore src/Tring
       - name: Calculating version
         shell: pwsh
         run: | 
@@ -55,7 +49,7 @@ jobs:
           }
           $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force               
       - name: Pack
-        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
+        run: dotnet pack --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
       - name: Pushing NuGet package
         run: dotnet nuget push "**/*.nupkg" --api-key ${{secrets.HTI_NUGET_APIKEY}} --no-symbols true --source https://api.nuget.org/v3/index.json		
 #  test:
@@ -102,8 +96,6 @@ jobs:
     steps:	
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Install .NET SDK 3.1
         uses: actions/setup-dotnet@v1
         with:
