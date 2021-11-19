@@ -36,7 +36,10 @@ jobs:
           [assembly: AssemblyFileVersionAttribute("$($env:AssemblyVersion)")]
           [assembly: AssemblyInformationalVersionAttribute("$($env:FullSemVer)")]
           "@
-          $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "../../built" "SharedAssemblyInfo.cs") -Force        
+          if (-not (Test-Path "built")) {
+            New-Item -ItemType Directory "built"
+          }
+          $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force        
       - name: Calculating version
         shell: pwsh
         run: | 
