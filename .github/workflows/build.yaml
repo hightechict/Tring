@@ -24,6 +24,20 @@ jobs:
         run: dotnet restore		  
       - name: Build
         run: dotnet build --configuration Release --no-restore src/Tring
+      - name: Calculating version
+        shell: pwsh
+        run: | 
+          $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
+          Write-Host "calculated version:"
+          $version | Format-List
+          
+          $SemVer = $version.SemVer
+          $FullSemVer = $version.FullSemVer
+          $AssemblyVersion = $version.AssemblyVersion
+          
+          echo "::set-env name=SemVer::$SemVer"
+          echo "::set-env name=FullSemVer::$FullSemVer"          
+          echo "::set-env name=AssemblyVersion::$AssemblyVersion"   
       - name: Create assembly info
         shell: pwsh
         run: |
@@ -39,21 +53,7 @@ jobs:
           if (-not (Test-Path "built")) {
             New-Item -ItemType Directory "built"
           }
-          $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force        
-      - name: Calculating version
-        shell: pwsh
-        run: | 
-          $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
-          Write-Host "calculated version:"
-          $version | Format-List
-          
-          $SemVer = $version.SemVer
-          $FullSemVer = $version.FullSemVer
-          $AssemblyVersion = $version.AssemblyVersion
-          
-          echo "::set-env name=SemVer::$SemVer"
-          echo "::set-env name=FullSemVer::$FullSemVer"          
-          echo "::set-env name=AssemblyVersion::$AssemblyVersion"   
+          $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force               
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
       - name: Pushing NuGet package
