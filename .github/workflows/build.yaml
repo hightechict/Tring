@@ -1,42 +1,32 @@
 name: dotnet package
-
-on: [push]
+on: 
+  push:
+	branches: [master, develop, release]
+	pull_request:
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 jobs:
   build:
-
+	name: Build
     runs-on: [self-hosted, linux, net60, pwsh]    
-#    strategy:
-#      matrix:
-#        dotnet-version: ['3.0', '3.1.x', '5.0.x' ]
-
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+	    uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0	
       - name: Install git-flow-version
         run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
-      - name: Setup .NET Core SDK 3.1
-        uses: actions/setup-dotnet@v1.7.2
+      - name: Install .NET SDK 3.1
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore		  
       - name: Build
         run: dotnet build --configuration Release --no-restore src/Tring
-      - name: Test
-        run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../built/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
-      - name: Publish coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: ./built/Tring.netcoreapp3.1.xml,./Tring.net6.0.xml
       - name: Calculating version
         shell: pwsh
         run: | 
-          #$vars = Get-ChildItem env:  | Out-String
-          #echo "$vars"
-        
           $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
           $version | Format-List
@@ -63,10 +53,57 @@ jobs:
           $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force
       - name: Pack
         run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
-#      - name: Show env vars
-#        shell: pwsh
-#        run: |          
-#          $vars = Get-ChildItem env:  | Out-String
-#          echo "$vars"
       - name: Pushing NuGet package
-        run: dotnet nuget push "**/*.nupkg" --api-key ${{secrets.HTI_NUGET_APIKEY}} --no-symbols true --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "**/*.nupkg" --api-key ${{secrets.HTI_NUGET_APIKEY}} --no-symbols true --source https://api.nuget.org/v3/index.json		
+#  test:
+#    name: Test #/ ${{ matrix.os }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
+#	runs-on: [self-hosted, linux, net60, pwsh] 
+#    strategy:
+#      matrix:
+#        arch: [ amd64 ]
+#        os: [windows-2019, macos-10.15]
+#        tfm: [ net472, netcoreapp3.1, net5.0, net6.0 ]
+#        exclude:
+#          - os: macos-10.15
+#            tfm: net472
+#      fail-fast: false
+#	steps:
+  test-linux:
+    name: Test #/ ${{ matrix.distro }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
+    runs-on: [self-hosted, linux, net60, pwsh]    
+#    strategy:
+#      matrix:
+#        arch: [ amd64 ]
+#        # arch: [ amd64, arm64 ]
+#        distro: [ alpine.3.12, alpine.3.13, alpine.3.14, centos.7, centos.8, debian.9, debian.10, debian.11, fedora.33, ubuntu.18.04, ubuntu.20.04 ]
+#        sdk:  [ '6.0', '5.0', '3.1' ]
+#        exclude:
+#          - arch: arm64
+#            distro: alpine.3.12
+#          - arch: arm64
+#            distro: alpine.3.13
+#            sdk: '3.1'
+#          - arch: arm64
+#            distro: alpine.3.14
+#            sdk: '3.1'
+#          - arch: arm64
+#            distro: centos.7
+#        include:
+#          - sdk: '6.0'
+#            tfm: net6.0
+#          - sdk: '5.0'
+#            tfm: net5.0
+#          - sdk: '3.1'
+#            tfm: netcoreapp3.1
+#      fail-fast: false
+    steps:	
+      - name: Checkout
+	    uses: actions/checkout@v2
+        with:
+          fetch-depth: 0	
+      - name: Run Test
+        run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../built/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
+      - name: Publish coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./built/Tring.netcoreapp3.1.xml,./Tring.net6.0.xml
