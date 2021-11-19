@@ -1,8 +1,7 @@
-name: built 
-on: [push]
-#  push:
-#    branches: [master, develop, release]
-#    pull_request:
+name: publish
+on:
+  push:
+    branches: [master, develop, release]
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
   # to allow set environment variables
