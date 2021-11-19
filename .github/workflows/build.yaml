@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
           #fetch-depth: 0 to fetch all history for all branches and tags
       - name: Install git-flow-version
-        run: dotnet tool update --global git-flow-version --version 0.17.0-dev.47
+        run: dotnet tool update --global git-flow-version --version 0.17.0-rc.2
       - name: Calculating version
         shell: pwsh
         run: | 
