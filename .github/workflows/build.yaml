@@ -1,8 +1,8 @@
 name: dotnet package
-on: 
-  push:
-    branches: [master, develop, release]
-    pull_request:
+on: [push]
+#  push:
+#    branches: [master, develop, release]
+#    pull_request:
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 jobs:
