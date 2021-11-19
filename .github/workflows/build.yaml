@@ -1,17 +1,17 @@
 name: dotnet package
 on: 
   push:
-	branches: [master, develop, release]
-	pull_request:
+    branches: [master, develop, release]
+    pull_request:
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 jobs:
   build:
-	name: Build
+    name: Build
     runs-on: [self-hosted, linux, net60, pwsh]    
     steps:
       - name: Checkout
-	    uses: actions/checkout@v2
+	uses: actions/checkout@v2
         with:
           fetch-depth: 0	
       - name: Install git-flow-version
@@ -98,7 +98,7 @@ jobs:
 #      fail-fast: false
     steps:	
       - name: Checkout
-	    uses: actions/checkout@v2
+	uses: actions/checkout@v2
         with:
           fetch-depth: 0	
       - name: Run Test
