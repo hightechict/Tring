@@ -141,13 +141,20 @@ namespace Tring.Common
             {
                 localEndPoint = QueryRoutingInterface(socket, remoteEndPoint);
             }
+            catch (PlatformNotSupportedException)
+            {
+                return "n/a";
+            }
             catch (Exception)
             {
                 if (_request.IsIPv6)
-                    throw new NotSupportedException("A error occured while trying to determine the local end point, the network or provider most likely does not support IPv6.");
-                else
-                    throw new InvalidOperationException("A error occured while trying to determine the local end point.");
+                    throw new NotSupportedException(
+                        "A error occured while trying to determine the local end point, the network or provider most likely does not support IPv6.");
+
+                throw new InvalidOperationException(
+                    "A error occured while trying to determine the local end point.");
             }
+
             return localEndPoint.Address.ToString();
         }
 
