@@ -19,7 +19,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFramework>net7.0</TargetFramework>
     <Title>Tring</Title>
     <Description>Tring can be used to quickly test a TCP connection.</Description>
     <IsPackable>true</IsPackable>

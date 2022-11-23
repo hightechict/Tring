@@ -40,7 +40,7 @@ namespace Tring.Common
             var optionWatch = app.Option("-w|--watch", "Set the application to continually check the connection at the specified interval in seconds.", CommandOptionType.NoValue);
             var optionIPv6 = app.Option("-6|--ipv6", "Set the program to use IPv6 for dns requests.", CommandOptionType.NoValue);
 
-            app.OnExecute(async () =>
+            app.OnExecuteAsync(async _ =>
             {
                 switch (arguments.Values.Count)
                 {
@@ -84,7 +84,7 @@ namespace Tring.Common
             }
         }
 
-        private static Task SetupConnections(bool watchMode, bool IPv6Mode, List<string> connections, CancellationTokenSource cancelationSource)
+        private static Task SetupConnections(bool watchMode, bool IPv6Mode, IEnumerable<string> connections, CancellationTokenSource cancelationSource)
         {
             var tasks = new List<Task>();
             var requests = connections.Select(connection => ConnectionRequest.Parse(connection, IPv6Mode));
