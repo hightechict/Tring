@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "git-flow-version": {
+      "version": "0.17.0-rc.3",
+      "commands": [
+        "git-flow-version"
+      ]
+    }
+  }
+}

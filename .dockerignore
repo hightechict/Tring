@@ -1,0 +1,14 @@
+﻿**/.built
+**/.idea
+**/.vs
+**/.editorconfig
+.git
+**/[Bb]in/
+**/[Oo]bj/
+**/Dockerfile
+**/docker-compose.*
+**/.dockerignore
+**/.env
+**/README.md
+**/*.user
+**/*.Development.json

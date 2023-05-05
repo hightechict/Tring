@@ -38,7 +38,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ILMerge" Version="3.0.29" GeneratePathProperty="true" />
+    <PackageReference Include="ILMerge" Version="3.0.41" GeneratePathProperty="true" />
   </ItemGroup>
 
   <Target Name="MergeIL" Condition=" '$(Configuration)' == 'Release' " AfterTargets="Build">
@@ -50,7 +50,7 @@ along with Tring. If not, see<https://www.gnu.org/licenses/>.
     </PropertyGroup>-->
     <Message Importance="high" Text="Executing ILMerge...with target platform from $(ReferenceAssemblies)" />
     <Message Importance="high" Text="Current directory: $()" />
-    <Exec Command="cd"/>
+    <Exec Command="cd" />
     <Exec Command="&quot;$(PkgILMerge)\tools\net452\ILMerge.exe&quot; /ndebug /target:exe /out:@(MainAssembly) /internalize &quot;@(IntermediateAssembly)&quot; @(AssembliesToMerge->'&quot;%(FullPath)&quot;', ' ')" />
     <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
   </Target>
