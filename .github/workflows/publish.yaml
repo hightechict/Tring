@@ -105,6 +105,6 @@ jobs:
       - name: Run Test
         run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../test/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
       - name: Publish coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           files: ./test/Tring.xml
