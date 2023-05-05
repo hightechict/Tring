@@ -96,6 +96,12 @@ namespace Tring.Common
                 tasks.Add(CheckIfEscPress(cancelationSource));
             printer.PrintTable();
             printer.HideCursor();
+            if (!Console.IsOutputRedirected)
+            {
+                for (int index = 0; index < connectors.Count; index++)
+                    Console.WriteLine("");
+            }
+            var cursorTop = Console.CursorTop - connectors.Count;
             for (int index = 0; index < connectors.Count; index++)
             {
                 tasks.Add(
@@ -103,7 +109,7 @@ namespace Tring.Common
                         watchMode,
                         watchMode && connectors.Count == 1,
                         connectors[index],
-                        Console.CursorTop + index,
+                        cursorTop + index,
                         printer,
                         cancelationToken
                     ));

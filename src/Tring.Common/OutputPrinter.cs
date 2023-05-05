@@ -63,6 +63,8 @@ namespace Tring.Common
                 PrintProtocol(status.Request.Port);
                 if(_containsURL)
                     PrintHostName(status.Request.Url);
+                if (Console.IsOutputRedirected)
+                    Console.WriteLine("");
             }
         }
 
@@ -71,7 +73,7 @@ namespace Tring.Common
             Console.Write(" | Time              | " + "IP".PadRight(_lenghtHostIP) + " | " + "Port".PadRight(_lenghtPort) + " | Connect | Ping    | " + "Local interface".PadRight(_lenghtEgressIP) + " | Protocol |");
             if (_containsURL)
                 Console.Write(" Hostname");
-            Console.Write("\n");
+            Console.WriteLine();
 
             // example output   | 20:22:22-20:23:33 | 100.100.203.104 | 80222 | Timeout | 1000 ms | 111.111.111.111 | https    | google.com
             // IPv6             | 21:22:33-22:22:22 | 2001:4860:4860:1023:1230:1230:2330:8888 | 80222 | Timeout | 1000 ms | 2001:4860:4860:1023:1230:1230:2330:8888 | https    | google.com 
@@ -79,8 +81,17 @@ namespace Tring.Common
 
         public static void SetPrintLine(int lines = 0)
         {
-            if (!Console.IsOutputRedirected)
-                Console.SetCursorPosition(0, lines);
+            if (Console.IsOutputRedirected) return;
+            var ht = Console.BufferHeight;
+            try
+            {
+                Console.CursorLeft = 0;
+                Console.CursorTop = Math.Min(ht - 1,lines);
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
         public void HideCursor()
@@ -91,15 +102,14 @@ namespace Tring.Common
 
         public static void CleanUpConsole(int endLine, int extraSpacing)
         {
-            if (!Console.IsOutputRedirected)
-            {
-                Console.CursorVisible = true;
-                Console.ResetColor();
-                if (Console.CursorTop <= endLine + extraSpacing)
-                    SetPrintLine(endLine + extraSpacing);
-                else
-                    Console.CursorTop += extraSpacing;
-            }
+            if (Console.IsOutputRedirected) return;
+
+            Console.CursorVisible = true;
+            Console.ResetColor();
+            if (Console.CursorTop <= endLine + extraSpacing)
+                SetPrintLine(endLine + extraSpacing);
+            else
+                Console.CursorTop += extraSpacing;
         }
 
         private void PrintProtocol(int port)
@@ -110,7 +120,7 @@ namespace Tring.Common
         private void PrintHostName(string url)
         {
             Console.ResetColor();
-            Console.WriteLine(url);
+            Console.Write(url);
         }
 
         private void PrintLocalInterface(string localInterface)
