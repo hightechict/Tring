@@ -51,7 +51,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore src/Tring
       - name: Pack
-        run: dotnet pack --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
+        run: dotnet --no-build pack --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
       - name: Pushing NuGet package
         run: dotnet nuget push "**/*.nupkg" --api-key ${{secrets.HTI_NUGET_APIKEY}} --no-symbols --source https://api.nuget.org/v3/index.json
 #  test:

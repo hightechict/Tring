@@ -49,7 +49,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore src/Tring
       - name: Pack
-        run: dotnet pack --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
+        run: dotnet pack --no-build --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
 #  test:
 #    name: Test #/ ${{ matrix.os }} / ${{ matrix.arch }} / ${{ matrix.tfm }}
 #	runs-on: [self-hosted, linux, net60, pwsh] 
