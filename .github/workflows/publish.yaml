@@ -18,8 +18,6 @@ jobs:
         run: dotnet restore
       - name: Install tool dependencies
         run: dotnet tool restore
-      - name: Build
-        run: dotnet build --configuration Release --no-restore src/Tring
       - name: Calculating version
         shell: pwsh
         run: | 
@@ -50,6 +48,8 @@ jobs:
             New-Item -ItemType Directory "built"
           }
           $assemblyInfoContent | Out-File -Encoding utf8 (Join-Path "built" "SharedAssemblyInfo.cs") -Force               
+      - name: Build
+        run: dotnet build --configuration Release --no-restore src/Tring
       - name: Pack
         run: dotnet pack --verbosity normal --configuration Release src/Tring -p:PackageVersion=$FullSemVer
       - name: Pushing NuGet package
@@ -98,11 +98,13 @@ jobs:
     steps:	
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
       - name: Install dependencies
-        run: dotnet restore		           
+        run: dotnet restore
       - name: Run Test
         run: dotnet test /p:CollectCoverage=true /p:Exclude=[xunit.*]* /p:CoverletOutput=../../test/Tring.xml --no-restore --verbosity normal --configuration Release test/TringTests
       - name: Publish coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
-          files: ./test/Tring.netcoreapp3.1.xml,./Tring.net6.0.xml
+          files: ./test/Tring.xml
