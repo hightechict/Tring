@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0	
+          fetch-depth: 0
       - name: Install dependencies
         run: dotnet restore
       - name: Install tool dependencies
@@ -98,10 +98,6 @@ jobs:
     steps:	
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install .NET SDK 3.1
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 3.1.x          
       - name: Install dependencies
         run: dotnet restore		           
       - name: Run Test
