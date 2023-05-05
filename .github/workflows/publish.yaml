@@ -13,14 +13,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-          #fetch-depth: 0 to fetch all history for all branches and tags
-      - name: Install git-flow-version
-        run: dotnet tool update --global git-flow-version --version 0.17.0-rc.2
+          fetch-depth: 0	
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Install tool dependencies
+        run: dotnet tool restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore src/Tring
       - name: Calculating version
         shell: pwsh
         run: | 
-          $version = /home/docker/.dotnet/tools/git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
+          $version = dotnet tool run git-flow-version --branch $ENV:GITHUB_REF_NAME | ConvertFrom-Json
           Write-Host "calculated version:"
           $version | Format-List
           
